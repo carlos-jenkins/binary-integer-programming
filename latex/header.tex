@@ -1,0 +1,51 @@
+\documentclass{article}
+
+\usepackage[top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry} % Page
+\usepackage[utf8]{inputenc} % Encoding
+
+\usepackage{graphicx}       % Images
+\usepackage{paralist}       % Lists
+\usepackage{float}          % In place images
+\usepackage{color}          % Define colors
+\usepackage[table]{xcolor}  % Colorize tables
+\usepackage{chngpage}       % Redefine margins
+\usepackage{multicol}       % Multiple columns
+
+\addtolength{\parskip}{\baselineskip}    % Paragraph spacing
+\linespread{1.15}                        % Lines spacing
+\setlength{\plitemsep}{0.5\baselineskip} % List items spacing
+
+% Colors
+\definecolor{deepred}{RGB}{150,0,0}
+\definecolor{deepgreen}{RGB}{0,150,0}
+\definecolor{deepblue}{RGB}{0,0,70}
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray90}{gray}{.90}
+\definecolor{gray85}{gray}{.85}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+
+% Remove numbering on sections
+\setcounter{secnumdepth}{0}
+
+% Helpers
+\newcommand{\superscript}[1]{\ensuremath{^{\textrm{\small#1}}}}
+\newcommand{\subscript}[1]{\ensuremath{_{\textrm{\small#1}}}}
+\newcommand{\HRule}{\noindent\rule{\linewidth}{0.5mm}}
+
+% Heading definitions
+\makeatletter
+\renewcommand\section{\@startsection
+  {section}{1}{0mm}%                 name, level, indent
+  {0cm}%                             beforeskip
+  {0.01cm}%                          afterskip
+  {\Huge\bfseries\color{black}}}%    style
+\makeatother
+
+% Links
+\usepackage[urlcolor=blue,colorlinks=true,hyperfootnotes=false]{hyperref}
+\hypersetup{linkcolor=deepblue,}
+
+\begin{document}
+
+\HRule
