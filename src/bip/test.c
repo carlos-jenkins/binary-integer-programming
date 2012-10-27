@@ -16,88 +16,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "floyd.h"
+#include "bip.h"
+#include "report.h"
 #include "latex.h"
 
 int main(int argc, char **argv)
 {
-    printf("Testing Floyd algorithm...\n\n");
+    printf("Testing binary integer programming algorythms...\n\n");
 
     /* Create context */
-    floyd_context* c = floyd_context_new(6);
+    bip_context* c = bip_context_new(10000, 10000); /* FIXME */
     if(c == NULL) {
-        printf("ERROR: Unable to create floyd context... exiting.\n");
+        printf("ERROR: Unable to bip context... exiting.\n");
         return(-1);
     }
 
-    /* Fill context
-     * | \ |   0 |   1 |   2 |   3 |   4 |   5 |
-     * | 0 |   0 | inf | inf | inf |   5 |  11 |
-     * | 1 |  16 |   0 |   6 |   1 | inf |   4 |
-     * | 2 | inf |   7 |   0 |  12 | inf | inf |
-     * | 3 | inf | inf |  19 |   0 |   9 | inf |
-     * | 4 |   2 | inf |   8 | inf |   0 | inf |
-     * | 5 | inf | inf | inf | inf |   3 |   0 |
-     */
-
-    char** n = c->names;
-    n[0] = "A";
-    n[1] = "B";
-    n[2] = "C";
-    n[3] = "D";
-    n[4] = "E";
-    n[5] = "F";
-
-    matrix* d = c->table_d;
-    matrix* p = c->table_p;
-
-    d->data[0][4] = 5.0;
-    d->data[0][5] = 11.0;
-
-    d->data[1][0] = 16.0;
-    d->data[1][2] = 6.0;
-    d->data[1][3] = 1.0;
-    d->data[1][5] = 4.0;
-
-    d->data[2][1] = 7.0;
-    d->data[2][3] = 12.0;
-
-    d->data[3][2] = 19.0;
-    d->data[3][4] = 9.0;
-
-    d->data[4][0] = 2.0;
-    d->data[4][2] = 8.0;
-
-    d->data[5][4] = 3.0;
-
+    /* Fill context*/
+    /* FIXME */
 
     /* Show table */
     printf("-----------------------------------\n");
-    matrix_print(d);
+    /* matrix_print(d); */
 
     /* Run algorithm */
-    bool success = floyd(c);
+    bool success = implicit_enumeration(c);
     if(!success) {
-        printf("ERROR: Floyd algorithm was unable to complete... exiting.\n");
+        printf("ERROR: Implicit enumeration was unable to complete... exiting.\n");
         return(-2);
     }
 
     /* Show tables */
     printf("-----------------------------------\n");
-    matrix_print(d);
+    /* matrix_print(d); */
     printf("-----------------------------------\n");
-    matrix_print(p);
+    /* matrix_print(p); */
 
     /* Generate report */
-    bool report_created = floyd_report(c);
+    bool report_created = implicit_report(c);
     if(!report_created) {
         printf("ERROR: Report could not be created.\n");
     } else {
-        printf("Report created at reports/floyd.tex\n");
+        printf("Report created at reports/implicit.tex\n");
 
-        int as_pdf = latex2pdf("floyd", "reports");
+        int as_pdf = latex2pdf("implicit", "reports");
         if(as_pdf == 0) {
-            printf("PDF version available at reports/floyd.pdf\n");
+            printf("PDF version available at reports/implicit.pdf\n");
         } else {
             printf("ERROR: Unable to convert report to PDF. Status: %i.\n",
                    as_pdf);
@@ -105,6 +68,6 @@ int main(int argc, char **argv)
     }
 
     /* Free resources */
-    floyd_context_free(c);
+    bip_context_free(c);
     return(0);
 }

@@ -50,12 +50,14 @@ void matrix_print(matrix* m)
     for(int i = 0; i < m->rows; i++) {
         for(int j = 0; j < m->columns; j++) {
             int cell = m->data[i][j];
+            /* float cell = m->data[i][j]; */
             if(cell == INT_MAX) {
                 printf("+oo ");
             } else if(cell == INT_MIN) {
                 printf("-oo ");
             } else {
                 printf("%i ", cell);
+                /* printf("%4.2f ", cell); */
             }
         }
         printf("\n");

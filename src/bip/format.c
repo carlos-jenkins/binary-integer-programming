@@ -28,3 +28,4 @@ char* var_name(int c, int s)
                               (s / 26) + 1);
     return r;
 }
+

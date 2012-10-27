@@ -5,18 +5,18 @@ CFLAGS = `pkg-config --cflags --libs glib-2.0` -lm
 GFLAGS = `pkg-config --cflags --libs gtk+-3.0 gmodule-export-2.0` -lm
 
 COMMON = -Isrc/utils/ src/utils/matrix.c src/utils/utils.c src/utils/latex.c src/utils/graphviz.c
-GUI    = src/utils/dialogs.c src/bip/format.c
+GUI    = src/utils/dialogs.c
 
 # Rules
 all: clean bin/bip
 test: clean bin/test/bip
 
 # Main binary
-bin/bip: src/floyd/main.c src/floyd/floyd.c src/floyd/report.c
+bin/bip: src/bip/gui.c src/bip/format.c src/bip/bip.c src/bip/report.c
 	$(CC) $(DEBUG) -o $@ $? $(COMMON) $(GUICOMMON) $(GFLAGS)
 
 # Test binary
-bin/test/bip: src/bip/test.c src/bip/algorithm.c src/bip/report.c
+bin/test/bip: src/bip/test.c src/bip/bip.c src/bip/report.c
 	$(CC) $(DEBUG) -o $@ $? $(COMMON) $(CFLAGS)
 
 

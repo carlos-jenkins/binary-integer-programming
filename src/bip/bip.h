@@ -42,7 +42,7 @@ typedef struct {
 
 } bip_context;
 
-bip_context* bip_context_new(int nodes);
+bip_context* bip_context_new(int num_vars, int num_rest);
 void bip_context_free(bip_context* c);
 
 /**
@@ -53,7 +53,5 @@ void bip_context_free(bip_context* c);
  *         'status' flag in context to know what went wrong.
  */
 bool implicit_enumeration(bip_context* c);
-
-#include "report.h"
 
 #endif

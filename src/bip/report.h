@@ -19,8 +19,8 @@
 #ifndef H_REPORT
 #define H_REPORT
 
+#include "bip.h"
 #include "graphviz.h"
-#include "implicit.h"
 
 /**
  * Write a report about the execution of the algorithm.
