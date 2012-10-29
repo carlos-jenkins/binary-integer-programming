@@ -87,6 +87,7 @@ int main(int argc, char **argv)
 void process(GtkButton* button, gpointer user_data)
 {
     /* FIXMEFIXME */
+    printf("TODO: Implement process()\n");
 }
 
 void save_cb(GtkButton* button, gpointer user_data)
@@ -183,9 +184,11 @@ void load_cb(GtkButton* button, gpointer user_data)
 
 void save(FILE* file)
 {
+    printf("TODO: Implement save()\n");
 }
 
 void load(FILE* file)
 {
+    printf("TODO: Implement load()\n");
 }
 
