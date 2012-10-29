@@ -22,7 +22,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <float.h>
+/* #include <float.h> */
+#include <limits.h>
 
 #define MATRIX_DATATYPE int
 

@@ -4,7 +4,8 @@ DEBUG  = -Wall -g
 CFLAGS = `pkg-config --cflags --libs glib-2.0` -lm
 GFLAGS = `pkg-config --cflags --libs gtk+-3.0 gmodule-export-2.0` -lm
 
-COMMON = -Isrc/utils/ src/utils/matrix.c src/utils/utils.c src/utils/latex.c src/utils/graphviz.c
+HEADRS = -Isrc/utils/
+COMMON = src/utils/graphviz.c src/utils/latex.c src/utils/matrix.c src/utils/utils.c
 GUI    = src/utils/dialogs.c
 
 # Rules
@@ -13,12 +14,11 @@ test: clean bin/test/bip
 
 # Main binary
 bin/bip: src/bip/gui.c src/bip/format.c src/bip/bip.c src/bip/report.c
-	$(CC) $(DEBUG) -o $@ $? $(COMMON) $(GUICOMMON) $(GFLAGS)
+	$(CC) $(DEBUG) -o $@ $? $(HEADRS) $(COMMON) $(GUI) $(GFLAGS)
 
 # Test binary
 bin/test/bip: src/bip/test.c src/bip/bip.c src/bip/report.c
-	$(CC) $(DEBUG) -o $@ $? $(COMMON) $(CFLAGS)
-
+	$(CC) $(DEBUG) -o $@ $? $(HEADRS) $(COMMON) $(CFLAGS)
 
 # Clean
 clean:

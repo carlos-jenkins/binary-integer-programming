@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef H_IMPLICIT
-#define H_IMPLICIT
+#ifndef H_BIP
+#define H_BIP
 
 #include "utils.h"
 #include "matrix.h"
