@@ -190,7 +190,7 @@
             <property name="row_spacing">5</property>
             <property name="column_spacing">5</property>
             <child>
-              <object class="GtkLabel" id="variables_label">
+              <object class="GtkLabel" id="vars_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
@@ -221,12 +221,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkSpinButton" id="variables">
+              <object class="GtkSpinButton" id="vars">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
                 <property name="invisible_char">•</property>
                 <property name="adjustment">vars_adjustment</property>
+                <signal name="value-changed" handler="vars_changed" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -396,6 +397,7 @@
                 <property name="label" translatable="yes">Remove</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-remove</property>
+                <signal name="clicked" handler="remove_row" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -411,6 +413,7 @@
                 <property name="label" translatable="yes">Add</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-add</property>
+                <signal name="clicked" handler="add_row" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

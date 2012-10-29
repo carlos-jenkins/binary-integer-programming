@@ -27,10 +27,24 @@
 GtkWindow* window;
 GtkSpinButton* vars;
 
+GtkRadioButton* function_max;
+GtkRadioButton* function_min;
+
+GtkTreeView* function_view;
+GtkListStore* function;
+
+GtkTreeView* restrictions_view;
+GtkListStore* restrictions;
+
 GtkFileChooser* load_dialog;
 GtkFileChooser* save_dialog;
 
 /* Functions */
+void add_row(GtkToolButton *toolbutton, gpointer user_data);
+void remove_row(GtkToolButton *toolbutton, gpointer user_data);
+
+void vars_changed(GtkSpinButton* spinbutton, gpointer user_data);
+
 void process(GtkButton* button, gpointer user_data);
 
 void save_cb(GtkButton* button, gpointer user_data);
@@ -62,6 +76,21 @@ int main(int argc, char **argv)
     window = GTK_WINDOW(gtk_builder_get_object(builder, "window"));
     vars = GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "vars"));
 
+    function_max = GTK_RADIO_BUTTON(
+        gtk_builder_get_object(builder, "function_max"));
+    function_min = GTK_RADIO_BUTTON(
+        gtk_builder_get_object(builder, "function_min"));
+
+    function_view = GTK_TREE_VIEW(
+        gtk_builder_get_object(builder, "function_view"));
+    function = GTK_LIST_STORE(
+        gtk_builder_get_object(builder, "function"));
+
+    restrictions_view = GTK_TREE_VIEW(
+        gtk_builder_get_object(builder, "function_view"));
+    restrictions = GTK_LIST_STORE(
+        gtk_builder_get_object(builder, "restrictions"));
+
     load_dialog = GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "load_dialog"));
     save_dialog = GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "save_dialog"));
 
@@ -82,6 +111,62 @@ int main(int argc, char **argv)
     gtk_main();
 
     return(0);
+}
+
+void vars_changed(GtkSpinButton* spinbutton, gpointer user_data) {
+    printf("TODO: Implement vars_changed()\n");
+}
+
+void add_row(GtkToolButton *toolbutton, gpointer user_data)
+{
+    int rows = gtk_tree_model_iter_n_children(
+                                    GTK_TREE_MODEL(restrictions), NULL);
+
+    GtkTreeIter iter;
+    gtk_list_store_append(restrictions, &iter);
+    printf("TODO: Implement add_row()\n");
+    //gtk_list_store_set(restrictions, &iter,
+                        //0, sequence_name(rows),
+                        //1, 1,
+                        //2, 1,
+                        //3, 1,
+                        //4, "1",
+                        //-1);
+    //FIXMEFIXME
+    GtkTreePath* model_path = gtk_tree_model_get_path(
+                                GTK_TREE_MODEL(restrictions), &iter);
+    gtk_tree_view_set_cursor(restrictions_view, model_path,
+                             gtk_tree_view_get_column(restrictions_view, 0),
+                             true);
+    gtk_tree_path_free(model_path);
+    return;
+}
+
+void remove_row(GtkToolButton *toolbutton, gpointer user_data)
+{
+    int rows = gtk_tree_model_iter_n_children(
+                                    GTK_TREE_MODEL(restrictions), NULL);
+    if(rows < 3) {
+        return;
+    }
+
+    GtkTreeSelection* selection = gtk_tree_view_get_selection(restrictions_view);
+    GtkTreeIter iter;
+    if(gtk_tree_selection_get_selected(selection, NULL, &iter)) {
+
+        bool valid = gtk_list_store_remove(restrictions, &iter);
+        if(!valid) {
+            valid = gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(restrictions),
+                                                  &iter, NULL, rows - 1);
+        }
+
+        if(valid) {
+            GtkTreePath* model_path = gtk_tree_model_get_path(
+                                        GTK_TREE_MODEL(restrictions), &iter);
+            gtk_tree_view_set_cursor(restrictions_view, model_path, NULL, false);
+            gtk_tree_path_free(model_path);
+        }
+    }
 }
 
 void process(GtkButton* button, gpointer user_data)
