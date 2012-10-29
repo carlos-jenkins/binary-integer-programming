@@ -34,52 +34,25 @@
  *     - variable (char*, ex "a"),
  *     - Subindex (int, ex. 2).
  */
-const char* var_format =
-"<span size=\"x-large\" font_family=\"DejaVu Sans Mono\">%i"
-    "<span foreground=\"%s\">"
-        "<i><b>%s</b></i>"
-        "<sub>%i</sub>"
-    "</span>"
-"</span>";
+extern const char* var_format;
 
 /* Variables names */
-const char* var_names[] = {"a", "b", "c", "d", "e", "f", "g",
-    "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s",
-    "t", "u", "v", "w", "x", "y", "z"};
+extern const char* var_names[];
 
 /* Mapping colors
  * http://www.christianfaur.com/color/index.html
  */
-const char* var_colors[] = {
-    "#0000B4", /* A */
-    "#AF0D66", /* B */
-    "#92F846", /* C */
-    "#FFC82F", /* D */
-    "#FF7600", /* E */
-    "#B9B9B9", /* F */
-    "#EBEBDE", /* G */
-    "#646464", /* H */
-    "#FFFF00", /* I */
-    "#371370", /* J */
-    "#FFFF96", /* K */
-    "#CA3E5E", /* L */
-    "#CD913F", /* M */
-    "#0C4B64", /* N */
-    "#FF0000", /* O */
-    "#AF9B32", /* P */
-    "#000000", /* Q */
-    "#254619", /* R */
-    "#792187", /* S */
-    "#538CD0", /* T */
-    "#009A25", /* U */
-    "#B2DCCD", /* V */
-    "#FF98D5", /* W */
-    "#00004A", /* X */
-    "#AFC84A", /* Y */
-    "#3F190C"  /* Z */
-};
+extern const char* var_colors[];
 
-
-char* var_name(int c, int s);
+/**
+ * Format a variable.
+ *
+ * @param c, the coefficient of the variable.
+ * @param i, variable number.
+ * @param sign, if output should show the sign of the coefficient.
+ * @return a string with the Pango markup for that variable.
+ *         The string must be free'ed.
+ */
+char* var_name(int c, int i, bool sign);
 
 #endif

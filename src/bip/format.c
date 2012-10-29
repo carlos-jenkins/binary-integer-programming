@@ -18,14 +18,66 @@
 
 #include "format.h"
 
-char* var_name(int c, int s)
+const char* var_format =
+"<span size=\"x-large\" font_family=\"DejaVu Sans Mono\">%s%i"
+    "<span foreground=\"%s\">"
+        "<i><b>%s</b></i>"
+        "<sub>%i</sub>"
+    "</span>"
+"</span>";
+
+const char* var_names[] = {
+    "a", "b", "c", "d", "e", "f", "g", "h", "i",
+    "j", "k", "l", "m", "n", "o", "p", "q", "r",
+    "s", "t", "u", "v", "w", "x", "y", "z"
+};
+
+const char* var_colors[] = {
+    "#0000B4", /* A */
+    "#AF0D66", /* B */
+    "#92F846", /* C */
+    "#FFC82F", /* D */
+    "#FF7600", /* E */
+    "#B9B9B9", /* F */
+    "#EBEBDE", /* G */
+    "#646464", /* H */
+    "#FFFF00", /* I */
+    "#371370", /* J */
+    "#FFFF96", /* K */
+    "#CA3E5E", /* L */
+    "#CD913F", /* M */
+    "#0C4B64", /* N */
+    "#FF0000", /* O */
+    "#AF9B32", /* P */
+    "#000000", /* Q */
+    "#254619", /* R */
+    "#792187", /* S */
+    "#538CD0", /* T */
+    "#009A25", /* U */
+    "#B2DCCD", /* V */
+    "#FF98D5", /* W */
+    "#00004A", /* X */
+    "#AFC84A", /* Y */
+    "#3F190C"  /* Z */
+};
+
+char* var_name(int c, int i, bool s) /* Coeff, Index, Sign */
 {
+    char* sign = "";
+    if(s) {
+        if(c >= 0) {
+            sign = "+";
+        } else {
+            sign = "-";
+        }
+    }
+
+    if(i < 0) { i *= -1; }
     if(c < 0) { c *= -1; }
-    if(s < 0) { s *= -1; }
-    char* r = g_strdup_printf(var_format, c,
-                              var_colors[s % 26],
-                              var_names[s % 26],
-                              (s / 26) + 1);
+
+    char* r = g_strdup_printf(var_format, sign, c,
+                              var_colors[i % VARS],
+                              var_names[i % VARS],
+                              (i / VARS) + 1);
     return r;
 }
-

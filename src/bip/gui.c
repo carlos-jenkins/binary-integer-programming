@@ -21,6 +21,7 @@
 #include "report.h"
 #include "latex.h"
 #include "dialogs.h"
+#include "format.h"
 #include <gtk/gtk.h>
 
 /* GUI */
@@ -31,10 +32,7 @@ GtkRadioButton* function_max;
 GtkRadioButton* function_min;
 
 GtkTreeView* function_view;
-GtkListStore* function;
-
 GtkTreeView* restrictions_view;
-GtkListStore* restrictions;
 
 GtkFileChooser* load_dialog;
 GtkFileChooser* save_dialog;
@@ -43,7 +41,12 @@ GtkFileChooser* save_dialog;
 void add_row(GtkToolButton *toolbutton, gpointer user_data);
 void remove_row(GtkToolButton *toolbutton, gpointer user_data);
 
+void edit_started_cb(GtkCellRenderer* renderer, GtkCellEditable* editable,
+                     gchar* path, gpointer user_data);
 void vars_changed(GtkSpinButton* spinbutton, gpointer user_data);
+void change_vars(int vars);
+bool change_function(int vars);
+bool change_restrictions(int vars);
 
 void process(GtkButton* button, gpointer user_data);
 
@@ -83,17 +86,15 @@ int main(int argc, char **argv)
 
     function_view = GTK_TREE_VIEW(
         gtk_builder_get_object(builder, "function_view"));
-    function = GTK_LIST_STORE(
-        gtk_builder_get_object(builder, "function"));
-
     restrictions_view = GTK_TREE_VIEW(
-        gtk_builder_get_object(builder, "function_view"));
-    restrictions = GTK_LIST_STORE(
-        gtk_builder_get_object(builder, "restrictions"));
+        gtk_builder_get_object(builder, "restrictions_view"));
 
-    load_dialog = GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "load_dialog"));
-    save_dialog = GTK_FILE_CHOOSER(gtk_builder_get_object(builder, "save_dialog"));
+    load_dialog = GTK_FILE_CHOOSER(
+        gtk_builder_get_object(builder, "load_dialog"));
+    save_dialog = GTK_FILE_CHOOSER(
+        gtk_builder_get_object(builder, "save_dialog"));
 
+    /* Configure interface */
     GtkFileFilter* file_filter = gtk_file_filter_new();
     gtk_file_filter_set_name(file_filter, "Custom data file (*.bip)");
     gtk_file_filter_add_pattern(file_filter, "*.bip");
@@ -113,12 +114,140 @@ int main(int argc, char **argv)
     return(0);
 }
 
-void vars_changed(GtkSpinButton* spinbutton, gpointer user_data) {
-    printf("TODO: Implement vars_changed()\n");
+void edit_started_cb(GtkCellRenderer* renderer, GtkCellEditable* editable,
+                     gchar* path, gpointer user_data)
+{
+    GtkAdjustment* adj;
+
+    g_object_get(renderer, "adjustment", &adj, NULL);
+    if(adj) {
+        g_object_unref(adj);
+    }
+
+    adj = gtk_adjustment_new(
+                    1.00,           /* the initial value. */
+                    1.00,           /* the minimum value. */
+                    10000000.00,    /* the maximum value. */
+                    1.0,            /* the step increment. */
+                    10.0,           /* the page increment. */
+                    0.0             /* the page size. */
+                );
+    g_object_set(renderer, "adjustment", adj, NULL);
+}
+
+void vars_changed(GtkSpinButton* spinbutton, gpointer user_data)
+{
+    int vars = gtk_spin_button_get_value_as_int(spinbutton);
+    change_vars(vars);
+}
+
+void change_vars(int vars)
+{
+
+    if(vars < 2) {
+        show_error(window, "You need to define at least 2 variables. Sorry.");
+        return;
+    }
+    bool changed1 = change_function(vars);
+    bool changed2 = change_restrictions(vars);
+
+    if(!changed1 || !changed2) {
+        show_error(window,
+            "Unable to allocated memory for this problem. Sorry.");
+    }
+}
+
+bool change_function(int vars)
+{
+    /* Clear model */
+    gtk_list_store_clear(
+        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)));
+
+    /* Create the dynamic types array */
+    GType* types = (GType*) malloc(2 * vars * sizeof(GType));
+    if(types == NULL) {
+        return false;
+    }
+
+    /* Set type in the dynamic types array */
+    for(int i = 0; i < vars; i++) {
+        types[i] = G_TYPE_INT;               /* Coeffs */
+        types[vars + i] = G_TYPE_STRING;     /* Text   */
+    }
+
+    /* Create and fill the new model */
+    GtkListStore* function = gtk_list_store_newv(2 * vars, types);
+    GtkTreeIter iter;
+
+    GValue initi = G_VALUE_INIT;
+    g_value_init(&initi, G_TYPE_INT);
+
+    GValue inits = G_VALUE_INIT;
+    g_value_init(&inits, G_TYPE_STRING);
+
+    gtk_list_store_append(function, &iter);
+    for(int i = 0; i < vars; i++) {
+
+        g_value_set_int(&initi, 1);
+        gtk_list_store_set_value(function, &iter, i, &initi);
+
+        char* text = var_name(1, i, i != 0);
+        g_value_set_string(&inits, text);
+        gtk_list_store_set_value(function, &iter, vars + i, &inits);
+        free(text);
+    }
+
+    /* Clear the previous columns */
+    for(int i = gtk_tree_view_get_n_columns(function_view) - 1; i >= 0; i--) {
+        gtk_tree_view_remove_column(
+                                function_view,
+                                gtk_tree_view_get_column(function_view, i)
+                            );
+    }
+
+    /* Create the new columns */
+    for(int i = 0; i < vars; i++) {
+        /* Configure cell */
+        GtkCellRenderer* cell = gtk_cell_renderer_spin_new();
+        g_object_set(cell, "editable", true, NULL);
+        g_signal_connect(G_OBJECT(cell),
+                         "editing-started", G_CALLBACK(edit_started_cb),
+                         GINT_TO_POINTER(i));
+        //g_signal_connect(G_OBJECT(cell),
+                         //"edited", G_CALLBACK(function_edited_cb),
+                         //GINT_TO_POINTER(i));
+        edit_started_cb(cell, NULL, NULL, NULL);
+        /* Configure column */
+        GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
+                                        "", cell,  /* Title, renderer */
+                                        "markup", vars + i,
+                                        NULL);
+        gtk_tree_view_append_column(function_view, column);
+    }
+
+    /* Set the new model */
+    gtk_tree_view_set_model(function_view, GTK_TREE_MODEL(function));
+
+    /* Free resources */
+    g_object_unref(G_OBJECT(function));
+    free(types);
+
+    return true;
+}
+
+bool change_restrictions(int vars)
+{
+    /* Clear model */
+    gtk_list_store_clear(
+        GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view)));
+
+    return true;
 }
 
 void add_row(GtkToolButton *toolbutton, gpointer user_data)
 {
+    GtkListStore* restrictions =
+        GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view));
     int rows = gtk_tree_model_iter_n_children(
                                     GTK_TREE_MODEL(restrictions), NULL);
 
@@ -144,6 +273,8 @@ void add_row(GtkToolButton *toolbutton, gpointer user_data)
 
 void remove_row(GtkToolButton *toolbutton, gpointer user_data)
 {
+    GtkListStore* restrictions =
+        GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view));
     int rows = gtk_tree_model_iter_n_children(
                                     GTK_TREE_MODEL(restrictions), NULL);
     if(rows < 3) {
