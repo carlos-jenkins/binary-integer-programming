@@ -26,6 +26,9 @@
 #define LE "\u2264"
 #define GE "\u2265"
 
+#define PLUS  "<span size=\"x-large\" foreground=\"#FF0000\" font_family=\"DejaVu Sans Mono\">+</span>"
+#define MINUS "<span size=\"x-large\" foreground=\"#66FF00\" font_family=\"DejaVu Sans Mono\">-</span>"
+
 #define VARS 26
 
 /* Formatting string. Requires :

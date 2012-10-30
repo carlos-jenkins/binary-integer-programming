@@ -211,7 +211,7 @@ bool change_function(int vars)
         GTK_LIST_STORE(gtk_tree_view_get_model(function_view)));
 
     /* Create the dynamic types array */
-    GType* types = (GType*) malloc(2 * vars * sizeof(GType));
+    GType* types = (GType*) malloc(3 * vars * sizeof(GType));
     if(types == NULL) {
         return false;
     }
@@ -220,10 +220,11 @@ bool change_function(int vars)
     for(int i = 0; i < vars; i++) {
         types[i] = G_TYPE_INT;               /* Coeffs */
         types[vars + i] = G_TYPE_STRING;     /* Text   */
+        types[2 * vars + i] = G_TYPE_STRING; /* Signs  */
     }
 
     /* Create and fill the new model */
-    GtkListStore* function = gtk_list_store_newv(2 * vars, types);
+    GtkListStore* function = gtk_list_store_newv(3 * vars, types);
     GtkTreeIter iter;
 
     GValue initi = G_VALUE_INIT;
@@ -235,13 +236,16 @@ bool change_function(int vars)
     gtk_list_store_append(function, &iter);
     for(int i = 0; i < vars; i++) {
 
-        g_value_set_int(&initi, 10);
+        g_value_set_int(&initi, 1);
         gtk_list_store_set_value(function, &iter, i, &initi);
 
-        char* text = var_name(1, i, i != 0);
+        char* text = var_name(1, i, false);
         g_value_set_string(&inits, text);
         gtk_list_store_set_value(function, &iter, vars + i, &inits);
         free(text);
+
+        g_value_set_static_string(&inits, PLUS);
+        gtk_list_store_set_value(function, &iter, 2 * vars + i, &inits);
     }
 
     /* Clear the previous columns */
@@ -254,23 +258,41 @@ bool change_function(int vars)
 
     /* Create the new columns */
     for(int i = 0; i < vars; i++) {
-        /* Configure cell */
+
+        /* Create sign column */
+        if(i > 0) {
+            GtkCellRenderer* sign = gtk_cell_renderer_text_new();
+            GtkTreeViewColumn* sign_c = gtk_tree_view_column_new_with_attributes(
+                                            "", sign,  /* Title, renderer */
+                                            "markup", 2 * vars + i,
+                                            NULL);
+            gtk_tree_view_append_column(function_view, sign_c);
+        }
+
+        /* Create text column */
+        /* Create and configure cell */
         GtkCellRenderer* cell = gtk_cell_renderer_spin_new();
+
+        gtk_cell_renderer_set_alignment(cell, 1.0, 0.5);
         g_object_set(cell, "editable", true, NULL);
+
+        /* Configure callbacks */
         g_signal_connect(G_OBJECT(cell),
                     "editing-started", G_CALLBACK(function_edit_started_cb),
                     GINT_TO_POINTER(i));
-        gtk_cell_renderer_set_fixed_size(cell, 100, 40);
+        function_edit_started_cb(cell, NULL, NULL, GINT_TO_POINTER(i));
+
         //g_signal_connect(G_OBJECT(cell),
                          //"edited", G_CALLBACK(function_edited_cb),
                          //GINT_TO_POINTER(i));
-        function_edit_started_cb(cell, NULL, NULL, GINT_TO_POINTER(i));
+
+
         /* Configure column */
         GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
                                         "", cell,  /* Title, renderer */
                                         "markup", vars + i,
                                         NULL);
-        //g_object_set(column, "expand", true, NULL);
+        gtk_tree_view_column_set_min_width(column, 100);
         gtk_tree_view_append_column(function_view, column);
     }
     gtk_tree_view_append_column(function_view, gtk_tree_view_column_new());
