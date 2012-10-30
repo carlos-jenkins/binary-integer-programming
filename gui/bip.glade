@@ -410,7 +410,6 @@
               <object class="GtkTreeView" id="restrictions_view">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="headers_visible">False</property>
                 <property name="headers_clickable">False</property>
                 <property name="enable_search">False</property>
                 <signal name="row-activated" handler="toggle_type" swapped="no"/>

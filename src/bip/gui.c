@@ -540,10 +540,21 @@ bool change_restrictions(int vars)
     }
 
     /* Create the new columns */
-    for(int i = 0; i < vars; i++) {
+    for(int i = 0; i < size; i++) {
+
+        /* Especial column for type */
+        if(i == (size - 2)) {
+            GtkCellRenderer* type = gtk_cell_renderer_text_new();
+            GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
+                                        "", type,  /* Title, renderer */
+                                        "markup", size + i,
+                                        NULL);
+            gtk_tree_view_append_column(restrictions_view, column);
+            continue;
+        }
 
         /* Create sign column */
-        if(i > 0) {
+        if((i != 0) && (i != size - 1)) {
             GtkCellRenderer* sign = gtk_cell_renderer_text_new();
             GtkTreeViewColumn* sign_c =
                 gtk_tree_view_column_new_with_attributes(
@@ -578,15 +589,6 @@ bool change_restrictions(int vars)
         gtk_tree_view_column_set_min_width(column, 100);
         gtk_tree_view_append_column(restrictions_view, column);
     }
-    /* Create tail columns */
-    GtkCellRenderer* type = gtk_cell_renderer_spin_new();
-    GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
-                                    "", type,  /* Title, renderer */
-                                    "markup", 2 * size - 2,
-                                    NULL);
-    gtk_tree_view_append_column(restrictions_view, column);
-
-    /* Dummy resize column */
     gtk_tree_view_append_column(restrictions_view, gtk_tree_view_column_new());
 
     /* Set the new model */
