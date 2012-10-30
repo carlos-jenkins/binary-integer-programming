@@ -48,6 +48,9 @@ void change_vars(int vars);
 void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
                     gchar* new_text, gpointer user_data);
 
+void edit_started(GtkCellRenderer* renderer, GtkTreeModel* model,
+            GtkCellEditable* editable, gchar* path, gpointer user_data)
+
 /* Functions : Function */
 void function_edit_started_cb(GtkCellRenderer* renderer,
             GtkCellEditable* editable, gchar* path, gpointer user_data);
@@ -825,7 +828,25 @@ void load_cb(GtkButton* button, gpointer user_data)
 
 void save(FILE* file)
 {
-    printf("TODO: Implement save()\n");
+    /** Format:
+     * 10                      : Number of variables.
+     * 0/1                     : If the objetive function is to maximize.
+     * 7 8 9 45 0 7 23 29      : Coefficients of the objective function.
+     * 12                      : Number of restrictions.
+     * 5 7 4 20 5 0 13 70 1 50 : Coefficients of the first restriction.
+     * (....)                  : Many lines as restrictions.
+     */
+
+    int vars = gtk_spin_button_get_value_as_int(variables);
+    GtkListStore* function =
+        GTK_LIST_STORE(gtk_tree_view_get_model(function_view));
+
+    GtkListStore* restrictions =
+        GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view));
+    int num_restrictions = gtk_tree_model_iter_n_children(
+            GTK_TREE_MODEL(restrictions), NULL);
+
+    bool is_max = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(function_max));
 }
 
 void load(FILE* file)

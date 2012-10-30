@@ -192,7 +192,7 @@
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
     <property name="border_width">10</property>
-    <property name="title" translatable="yes">Floyd's algorithm</property>
+    <property name="title" translatable="yes">Binary integer programming</property>
     <property name="window_position">center-always</property>
     <property name="default_width">800</property>
     <property name="default_height">600</property>
@@ -410,6 +410,7 @@
               <object class="GtkTreeView" id="restrictions_view">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="headers_visible">False</property>
                 <property name="headers_clickable">False</property>
                 <property name="enable_search">False</property>
                 <signal name="row-activated" handler="toggle_type" swapped="no"/>
