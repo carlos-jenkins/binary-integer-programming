@@ -550,6 +550,7 @@ void add_row(GtkToolButton *toolbutton, gpointer user_data)
     GtkTreeIter iter;
     gtk_list_store_append(restrictions, &iter);
 
+    int size = vars + 2;
     for(int i = 0; i < vars; i++) {
 
         g_value_set_int(&initi, 1);
@@ -557,11 +558,11 @@ void add_row(GtkToolButton *toolbutton, gpointer user_data)
 
         char* text = var_name(1, i, false);
         g_value_set_string(&inits, text);
-        gtk_list_store_set_value(restrictions, &iter, vars + i, &inits);
+        gtk_list_store_set_value(restrictions, &iter, size + i, &inits);
         free(text);
 
         g_value_set_string(&inits, PLUS);
-        gtk_list_store_set_value(restrictions, &iter, 2 * vars + i, &inits);
+        gtk_list_store_set_value(restrictions, &iter, 2 * size + i, &inits);
     }
 
     /* Select new row */
