@@ -19,6 +19,13 @@
 #ifndef H_UTILS
 #define H_UTILS
 
+#define DEBUG_PRINT_ENABLED 1  // uncomment to enable DEBUG statements
+#if DEBUG_PRINT_ENABLED
+#define DEBUG printf
+#else
+#define DEBUG(format, args...) ((void)0)
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>

@@ -69,6 +69,8 @@ void num_edited_cb(GtkCellRendererText* renderer, gchar* path,
 
 void toggle_type(GtkTreeView* tree_view, GtkTreePath* path,
                  GtkTreeViewColumn* column, gpointer user_data);
+void write_symbol(GtkTreeModel* model,
+                 GtkTreeIter* iter, int symbol, int size);
 
 bool change_restrictions(int vars);
 
@@ -183,9 +185,8 @@ bool change_vars(int vars)
 void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
                     gchar* new_text, gpointer user_data)
 {
-    int row = atoi(path);
     int column = GPOINTER_TO_INT(user_data);
-    printf("%s at (%i, %i)\n", new_text, row, column);
+    DEBUG("%s at (%i, %i)\n", new_text, atoi(path), column);
 
     /* Get the coefficient */
     int coeff = 0;
@@ -193,7 +194,7 @@ void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
         char* end;
         coeff = (int) strtol(new_text, &end, 10);
         if(*end != '\0') { /* Conversion wasn't successful */
-            printf("Unable to parse %s\n", new_text);
+            DEBUG("Unable to parse %s\n", new_text);
             return;
         }
     }
@@ -455,6 +456,17 @@ void toggle_type(GtkTreeView* tree_view, GtkTreePath* path,
     int old = g_value_get_int(&gval);
     g_value_unset(&gval);
 
+    int symbol = LE;
+    if(old == LE) {
+        symbol = EQ;
+    } else if(old == EQ) {
+        symbol = GE;
+    }
+    write_symbol(model, &iter, symbol, size);
+}
+
+void write_symbol(GtkTreeModel* model, GtkTreeIter* iter, int symbol, int size)
+{
     /* Set the next value */
     GValue initi = G_VALUE_INIT;
     g_value_init(&initi, G_TYPE_INT);
@@ -462,18 +474,18 @@ void toggle_type(GtkTreeView* tree_view, GtkTreePath* path,
     GValue inits = G_VALUE_INIT;
     g_value_init(&inits, G_TYPE_STRING);
 
-    if(old == LE) {
-        g_value_set_int(&initi, EQ);
-        g_value_set_static_string(&inits, EQS);
-    } else if(old == EQ) {
-        g_value_set_int(&initi, GE);
-        g_value_set_static_string(&inits, GES);
-    } else {
+    if(symbol == LE) {
         g_value_set_int(&initi, LE);
         g_value_set_static_string(&inits, LES);
+    } else if(symbol == EQ) {
+        g_value_set_int(&initi, EQ);
+        g_value_set_static_string(&inits, EQS);
+    } else {
+        g_value_set_int(&initi, GE);
+        g_value_set_static_string(&inits, GES);
     }
-    gtk_list_store_set_value(GTK_LIST_STORE(model), &iter, size - 2, &initi);
-    gtk_list_store_set_value(GTK_LIST_STORE(model), &iter, 2*size - 2, &inits);
+    gtk_list_store_set_value(GTK_LIST_STORE(model), iter, size - 2, &initi);
+    gtk_list_store_set_value(GTK_LIST_STORE(model), iter, 2*size - 2, &inits);
 }
 
 bool change_restrictions(int vars)
@@ -733,7 +745,7 @@ void remove_row(GtkToolButton *toolbutton, gpointer user_data)
 void process(GtkButton* button, gpointer user_data)
 {
     /* FIXMEFIXME */
-    printf("TODO: Implement process()\n");
+    DEBUG("TODO: Implement process()\n");
 }
 
 void save_cb(GtkButton* button, gpointer user_data)
@@ -750,7 +762,7 @@ void save_cb(GtkButton* button, gpointer user_data)
     filename = gtk_file_chooser_get_filename(save_dialog);
 
     /* Check is not empty */
-    printf("Selected file: %s\n", filename);
+    DEBUG("Selected file: %s\n", filename);
     if((filename == NULL) || is_empty_string(filename)) {
         show_error(window, "Please select a file.");
         g_free(filename);
@@ -776,7 +788,7 @@ void save_cb(GtkButton* button, gpointer user_data)
     }
 
     /* Save current context */
-    printf("Saving to file %s\n", filename);
+    DEBUG("Saving to file %s\n", filename);
     save(file);
 
     /* Free resources */
@@ -798,7 +810,7 @@ void load_cb(GtkButton* button, gpointer user_data)
     filename = gtk_file_chooser_get_filename(load_dialog);
 
     /* Check is not empty */
-    printf("Selected file: %s\n", filename);
+    DEBUG("Selected file: %s\n", filename);
     if((filename == NULL) || is_empty_string(filename)) {
         show_error(window, "Please select a file.");
         g_free(filename);
@@ -820,7 +832,7 @@ void load_cb(GtkButton* button, gpointer user_data)
     }
 
     /* Load file */
-    printf("Loading file %s\n", filename);
+    DEBUG("Loading file %s\n", filename);
     load(file);
 
     /* Free resources */
@@ -881,8 +893,6 @@ void save(FILE* file)
 
 void load(FILE* file)
 {
-    printf("TODO: Implement load()\n");
-
     /* Load number of variables */
     int vars = 0;
     fscanf(file, "%i%*c", &vars);
@@ -890,6 +900,7 @@ void load(FILE* file)
     if(!success) {
         return;
     }
+    gtk_spin_button_set_value(variables, (gdouble)vars);
 
     /* Reference new models */
     GtkTreeModel* function = gtk_tree_view_get_model(function_view);
@@ -924,7 +935,9 @@ void load(FILE* file)
     /* Load coefficients of each restriction */
     int size = vars + 2;
     char buff2[15];
-    for(int i = 0; i < num_restrictions; i++) {
+    GtkTreeIter iter;
+    bool iter_set = gtk_tree_model_get_iter_first(restrictions, &iter);
+    for(int i = 0; iter_set && (i < num_restrictions); i++) {
         for(int j = 0; j < size; j++) {
             /* Coefficient or num */
             if(j != (size - 2)) {
@@ -939,9 +952,12 @@ void load(FILE* file)
             /* Equation type */
             } else {
                 fscanf(file, "%i", &coeff);
-                printf("Found type to be %i at (%i, %i).\n", coeff, i, j);
+                DEBUG("Found type to be %i at (%i, %i).\n", coeff, i, j);
+                write_symbol(restrictions, &iter, coeff, size);
             }
         }
         fscanf(file, "%*c");
+
+        iter_set = gtk_tree_model_iter_next(restrictions, &iter);
     }
 }
