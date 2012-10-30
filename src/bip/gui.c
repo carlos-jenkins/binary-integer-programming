@@ -38,23 +38,40 @@ GtkFileChooser* load_dialog;
 GtkFileChooser* save_dialog;
 
 /* Functions */
+/* Functions : Main */
+void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data);
+void change_vars(int vars);
+
+/* Functions : Function */
+void function_edit_started_cb(GtkCellRenderer* renderer,
+            GtkCellEditable* editable, gchar* path, gpointer user_data);
+void function_edited_cb(GtkCellRendererText* renderer, gchar* path,
+                    gchar* new_text, gpointer user_data);
+
+bool change_function(int vars);
+
+/* Functions : Restrictions */
+void restrictions_edit_started_cb(GtkCellRenderer* renderer,
+            GtkCellEditable* editable, gchar* path, gpointer user_data);
+void restrictions_edited_cb(GtkCellRendererText* renderer, gchar* path,
+                    gchar* new_text, gpointer user_data);
+
+bool change_restrictions(int vars);
+
 void add_row(GtkToolButton *toolbutton, gpointer user_data);
 void remove_row(GtkToolButton *toolbutton, gpointer user_data);
 
-void edit_started_cb(GtkCellRenderer* renderer, GtkCellEditable* editable,
-                     gchar* path, gpointer user_data);
-void vars_changed(GtkSpinButton* spinbutton, gpointer user_data);
-void change_vars(int vars);
-bool change_function(int vars);
-bool change_restrictions(int vars);
-
+/* Functions : Actions */
 void process(GtkButton* button, gpointer user_data);
-
 void save_cb(GtkButton* button, gpointer user_data);
 void load_cb(GtkButton* button, gpointer user_data);
 void save(FILE* file);
 void load(FILE* file);
 
+
+/**************
+ * MAIN
+ **************/
 int main(int argc, char **argv)
 {
     GtkBuilder* builder;
@@ -105,7 +122,7 @@ int main(int argc, char **argv)
     gtk_builder_connect_signals(builder, NULL);
 
     /* Initialize interface */
-    /* FIXMEFIXME */
+    change_vars(2);
 
     g_object_unref(G_OBJECT(builder));
     gtk_widget_show(GTK_WIDGET(window));
@@ -114,28 +131,7 @@ int main(int argc, char **argv)
     return(0);
 }
 
-void edit_started_cb(GtkCellRenderer* renderer, GtkCellEditable* editable,
-                     gchar* path, gpointer user_data)
-{
-    GtkAdjustment* adj;
-
-    g_object_get(renderer, "adjustment", &adj, NULL);
-    if(adj) {
-        g_object_unref(adj);
-    }
-
-    adj = gtk_adjustment_new(
-                    1.00,           /* the initial value. */
-                    1.00,           /* the minimum value. */
-                    10000000.00,    /* the maximum value. */
-                    1.0,            /* the step increment. */
-                    10.0,           /* the page increment. */
-                    0.0             /* the page size. */
-                );
-    g_object_set(renderer, "adjustment", adj, NULL);
-}
-
-void vars_changed(GtkSpinButton* spinbutton, gpointer user_data)
+void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data)
 {
     int vars = gtk_spin_button_get_value_as_int(spinbutton);
     change_vars(vars);
@@ -156,6 +152,57 @@ void change_vars(int vars)
             "Unable to allocated memory for this problem. Sorry.");
     }
 }
+
+/**************
+ * FUNCTION
+ **************/
+void function_edit_started_cb(GtkCellRenderer* renderer,
+            GtkCellEditable* editable, gchar* path, gpointer user_data)
+{
+    /* Remove previous adjustment */
+    GtkAdjustment* adj;
+    g_object_get(renderer, "adjustment", &adj, NULL);
+    if(adj) {
+        g_object_unref(adj);
+    }
+
+    /* Get column and data */
+    if(path != NULL) {
+        gtk_widget_set_size_request(GTK_WIDGET(editable), 100, 38);
+        gtk_widget_queue_resize(GTK_WIDGET(editable));
+
+        int column = GPOINTER_TO_INT(user_data);
+        GtkTreeIter iter;
+        GValue gval = G_VALUE_INIT;
+        gtk_tree_model_get_iter_from_string(
+                        gtk_tree_view_get_model(function_view),
+                        &iter, path);
+        gtk_tree_model_get_value(
+                        gtk_tree_view_get_model(function_view),
+                        &iter, column, &gval);
+        int init = g_value_get_int(&gval);
+        //printf("Found %i at %i\n", init, column);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(editable), (double) init);
+        g_value_unset(&gval);
+    }
+
+    adj = gtk_adjustment_new(
+                    0.0,            /* the initial value. (This is ignored) */
+                   -10000000.00,    /* the minimum value.  */
+                    10000000.00,    /* the maximum value.  */
+                    1.0,            /* the step increment. */
+                    10.0,           /* the page increment. */
+                    0.0             /* the page size. */
+                );
+    g_object_set(renderer, "adjustment", adj, NULL);
+}
+
+void function_edited_cb(GtkCellRendererText* renderer, gchar* path,
+                    gchar* new_text, gpointer user_data)
+{
+
+}
+
 
 bool change_function(int vars)
 {
@@ -188,7 +235,7 @@ bool change_function(int vars)
     gtk_list_store_append(function, &iter);
     for(int i = 0; i < vars; i++) {
 
-        g_value_set_int(&initi, 1);
+        g_value_set_int(&initi, 10);
         gtk_list_store_set_value(function, &iter, i, &initi);
 
         char* text = var_name(1, i, i != 0);
@@ -211,19 +258,22 @@ bool change_function(int vars)
         GtkCellRenderer* cell = gtk_cell_renderer_spin_new();
         g_object_set(cell, "editable", true, NULL);
         g_signal_connect(G_OBJECT(cell),
-                         "editing-started", G_CALLBACK(edit_started_cb),
-                         GINT_TO_POINTER(i));
+                    "editing-started", G_CALLBACK(function_edit_started_cb),
+                    GINT_TO_POINTER(i));
+        gtk_cell_renderer_set_fixed_size(cell, 100, 40);
         //g_signal_connect(G_OBJECT(cell),
                          //"edited", G_CALLBACK(function_edited_cb),
                          //GINT_TO_POINTER(i));
-        edit_started_cb(cell, NULL, NULL, NULL);
+        function_edit_started_cb(cell, NULL, NULL, GINT_TO_POINTER(i));
         /* Configure column */
         GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
                                         "", cell,  /* Title, renderer */
                                         "markup", vars + i,
                                         NULL);
+        //g_object_set(column, "expand", true, NULL);
         gtk_tree_view_append_column(function_view, column);
     }
+    gtk_tree_view_append_column(function_view, gtk_tree_view_column_new());
 
     /* Set the new model */
     gtk_tree_view_set_model(function_view, GTK_TREE_MODEL(function));
@@ -235,6 +285,9 @@ bool change_function(int vars)
     return true;
 }
 
+/**************
+ * RESTRICTIONS
+ **************/
 bool change_restrictions(int vars)
 {
     /* Clear model */
@@ -300,6 +353,9 @@ void remove_row(GtkToolButton *toolbutton, gpointer user_data)
     }
 }
 
+/**************
+ * ACTIONS
+ **************/
 void process(GtkButton* button, gpointer user_data)
 {
     /* FIXMEFIXME */

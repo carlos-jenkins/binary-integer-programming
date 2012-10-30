@@ -227,7 +227,7 @@
                 <property name="hexpand">True</property>
                 <property name="invisible_char">•</property>
                 <property name="adjustment">vars_adjustment</property>
-                <signal name="value-changed" handler="vars_changed" swapped="no"/>
+                <signal name="value-changed" handler="vars_changed_cb" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">1</property>

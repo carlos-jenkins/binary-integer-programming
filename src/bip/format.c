@@ -66,9 +66,9 @@ char* var_name(int c, int i, bool s) /* Coeff, Index, Sign */
     char* sign = "";
     if(s) {
         if(c >= 0) {
-            sign = "+";
+            sign = "+ ";
         } else {
-            sign = "-";
+            sign = "- ";
         }
     }
 
