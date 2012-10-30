@@ -43,7 +43,7 @@ GtkFileChooser* save_dialog;
 /* Functions : Main */
 void clear_liststore(GtkTreeView* view);
 void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data);
-void change_vars(int vars);
+bool change_vars(int vars);
 
 void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
                     gchar* new_text, gpointer user_data);
@@ -162,12 +162,12 @@ void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data)
     change_vars(vars);
 }
 
-void change_vars(int vars)
+bool change_vars(int vars)
 {
 
     if(vars < 2) {
         show_error(window, "You need to define at least 2 variables. Sorry.");
-        return;
+        return false;
     }
     bool changed1 = change_function(vars);
     bool changed2 = change_restrictions(vars);
@@ -175,7 +175,9 @@ void change_vars(int vars)
     if(!changed1 || !changed2) {
         show_error(window,
             "Unable to allocated memory for this problem. Sorry.");
+        return false;
     }
+    return true;
 }
 
 void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
@@ -632,7 +634,7 @@ bool change_restrictions(int vars)
     return true;
 }
 
-void add_row(GtkToolButton *toolbutton, gpointer user_data)
+void add_row(GtkToolButton* toolbutton, gpointer user_data)
 {
     /* Context data */
     GtkListStore* restrictions =
@@ -880,5 +882,66 @@ void save(FILE* file)
 void load(FILE* file)
 {
     printf("TODO: Implement load()\n");
-}
 
+    /* Load number of variables */
+    int vars = 0;
+    fscanf(file, "%i%*c", &vars);
+    bool success = change_vars(vars);
+    if(!success) {
+        return;
+    }
+
+    /* Reference new models */
+    GtkTreeModel* function = gtk_tree_view_get_model(function_view);
+    GtkTreeModel* restrictions = gtk_tree_view_get_model(restrictions_view);
+
+    /* Load if objetive function is to maximize */
+    int is_max = 0;
+    fscanf(file, "%i%*c", &is_max);
+    if(is_max) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(function_max), true);
+    } else {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(function_min), true);
+    }
+
+    /* Load coefficients of the objetive function */
+    int coeff = 0;
+    char buff[15];
+    for(int i = 0; i < vars; i++) {
+        fscanf(file, "%i", &coeff);
+        sprintf(buff, "%d", coeff);
+        writeback(function, "0", vars, true, (gchar*)&buff, GINT_TO_POINTER(i));
+    }
+    fscanf(file, "%*c");
+
+    /* Load number of restrictions */
+    int num_restrictions = 0;
+    fscanf(file, "%i%*c", &num_restrictions);
+    for(int i = 0; i < (num_restrictions - vars); i++) {
+        add_row(NULL, NULL);
+    }
+
+    /* Load coefficients of each restriction */
+    int size = vars + 2;
+    char buff2[15];
+    for(int i = 0; i < num_restrictions; i++) {
+        for(int j = 0; j < size; j++) {
+            /* Coefficient or num */
+            if(j != (size - 2)) {
+                fscanf(file, "%i", &coeff);
+                sprintf(buff,  "%d", coeff); /* new_text */
+                sprintf(buff2, "%d", i);     /* path */
+                writeback(restrictions,
+                    (gchar*)&buff2,
+                    size, j < (size - 1),
+                    (gchar*)&buff,
+                    GINT_TO_POINTER(j));
+            /* Equation type */
+            } else {
+                fscanf(file, "%i", &coeff);
+                printf("Found type to be %i at (%i, %i).\n", coeff, i, j);
+            }
+        }
+        fscanf(file, "%*c");
+    }
+}
