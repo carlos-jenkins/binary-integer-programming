@@ -26,7 +26,7 @@
 
 /* GUI */
 GtkWindow* window;
-GtkSpinButton* vars;
+GtkSpinButton* variables;
 
 GtkRadioButton* function_max;
 GtkRadioButton* function_min;
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
     /* Get pointers to objects */
     window = GTK_WINDOW(gtk_builder_get_object(builder, "window"));
-    vars = GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "vars"));
+    variables = GTK_SPIN_BUTTON(gtk_builder_get_object(builder, "variables"));
 
     function_max = GTK_RADIO_BUTTON(
         gtk_builder_get_object(builder, "function_max"));
@@ -168,9 +168,12 @@ void function_edit_started_cb(GtkCellRenderer* renderer,
 
     /* Get column and data */
     if(path != NULL) {
+        /* Configure editable */
+        gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(editable), true);
         gtk_widget_set_size_request(GTK_WIDGET(editable), 100, 38);
         gtk_widget_queue_resize(GTK_WIDGET(editable));
 
+        /* Configure editable */
         int column = GPOINTER_TO_INT(user_data);
         GtkTreeIter iter;
         GValue gval = G_VALUE_INIT;
@@ -184,6 +187,7 @@ void function_edit_started_cb(GtkCellRenderer* renderer,
         //printf("Found %i at %i\n", init, column);
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(editable), (double) init);
         g_value_unset(&gval);
+
     }
 
     adj = gtk_adjustment_new(
@@ -200,7 +204,66 @@ void function_edit_started_cb(GtkCellRenderer* renderer,
 void function_edited_cb(GtkCellRendererText* renderer, gchar* path,
                     gchar* new_text, gpointer user_data)
 {
+    int row = atoi(path);
+    int column = GPOINTER_TO_INT(user_data);
+    int vars = gtk_spin_button_get_value_as_int(variables);
+    printf("%s at (%i, %i)\n", new_text, row, column);
 
+    /* Get the coefficient */
+    int coeff = 0;
+    if(!is_empty_string(new_text)) {
+        char* end;
+        coeff = (int) strtol(new_text, &end, 10);
+        if(*end != '\0') { /* Conversion wasn't successful */
+            printf("Unable to parse %s\n", new_text);
+            return;
+        }
+    }
+
+    /* Get reference to model */
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter_from_string(
+                        gtk_tree_view_get_model(function_view),
+                        &iter, path);
+
+    /* Set the model */
+    GValue gvali = G_VALUE_INIT;
+    g_value_init(&gvali, G_TYPE_INT);
+
+    GValue gvals = G_VALUE_INIT;
+    g_value_init(&gvals, G_TYPE_STRING);
+
+    /* Coeff */
+    g_value_set_int(&gvali, coeff);
+    gtk_list_store_set_value(
+                        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)),
+                        &iter, column, &gvali);
+    g_value_unset(&gvali);
+
+    /* Text */
+    g_value_set_string(&gvals, "");
+    if(coeff != 0) {
+        char* text = var_name(coeff, column, column == 0);
+        g_value_set_string(&gvals, text);
+        free(text);
+    }
+    gtk_list_store_set_value(
+                        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)),
+                        &iter, vars + column, &gvals);
+
+    /* Sign */
+    g_value_set_string(&gvals, "");
+    if((column != 0)  && (coeff != 0)) {
+        if(coeff > 0) {
+            g_value_set_string(&gvals, PLUS);
+        } else {
+            g_value_set_string(&gvals, MINUS);
+        }
+    }
+    gtk_list_store_set_value(
+                        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)),
+                        &iter, 2 * vars + column, &gvals);
+    g_value_unset(&gvals);
 }
 
 
@@ -244,7 +307,7 @@ bool change_function(int vars)
         gtk_list_store_set_value(function, &iter, vars + i, &inits);
         free(text);
 
-        g_value_set_static_string(&inits, PLUS);
+        g_value_set_string(&inits, PLUS);
         gtk_list_store_set_value(function, &iter, 2 * vars + i, &inits);
     }
 
@@ -282,10 +345,9 @@ bool change_function(int vars)
                     GINT_TO_POINTER(i));
         function_edit_started_cb(cell, NULL, NULL, GINT_TO_POINTER(i));
 
-        //g_signal_connect(G_OBJECT(cell),
-                         //"edited", G_CALLBACK(function_edited_cb),
-                         //GINT_TO_POINTER(i));
-
+        g_signal_connect(G_OBJECT(cell),
+                         "edited", G_CALLBACK(function_edited_cb),
+                         GINT_TO_POINTER(i));
 
         /* Configure column */
         GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(

@@ -162,7 +162,7 @@
       <action-widget response="0">save_ok</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkAdjustment" id="vars_adjustment">
+  <object class="GtkAdjustment" id="variables_adjustment">
     <property name="lower">2</property>
     <property name="upper">100</property>
     <property name="value">2</property>
@@ -190,7 +190,7 @@
             <property name="row_spacing">5</property>
             <property name="column_spacing">5</property>
             <child>
-              <object class="GtkLabel" id="vars_label">
+              <object class="GtkLabel" id="variables_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
@@ -221,12 +221,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkSpinButton" id="vars">
+              <object class="GtkSpinButton" id="variables">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
                 <property name="invisible_char">•</property>
-                <property name="adjustment">vars_adjustment</property>
+                <property name="adjustment">variables_adjustment</property>
                 <signal name="value-changed" handler="vars_changed_cb" swapped="no"/>
               </object>
               <packing>
