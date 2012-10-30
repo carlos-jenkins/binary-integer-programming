@@ -23,8 +23,9 @@
 #include <glib.h>
 
 /* Lesser or equal and greater or equal unicode symbols */
-#define LES "\u2264"
-#define GES "\u2265"
+#define LES "<span size=\"xx-large\" foreground=\"#FF0000\" font_family=\"DejaVu Sans Mono\">\u2264</span>"
+#define GES "<span size=\"xx-large\" foreground=\"#66FF00\" font_family=\"DejaVu Sans Mono\">\u2265</span>"
+#define EQS "<span size=\"xx-large\" foreground=\"#000000\" font_family=\"DejaVu Sans Mono\">=</span>"
 
 #define PLUS  "<span size=\"x-large\" foreground=\"#66FF00\" font_family=\"DejaVu Sans Mono\">+</span>"
 #define MINUS "<span size=\"x-large\" foreground=\"#FF0000\" font_family=\"DejaVu Sans Mono\">-</span>"

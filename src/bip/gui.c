@@ -34,11 +34,14 @@ GtkRadioButton* function_min;
 GtkTreeView* function_view;
 GtkTreeView* restrictions_view;
 
+GtkTreeModel* types_model;
+
 GtkFileChooser* load_dialog;
 GtkFileChooser* save_dialog;
 
 /* Functions */
 /* Functions : Main */
+void clear_liststore(GtkTreeView* view);
 void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data);
 void change_vars(int vars);
 
@@ -106,6 +109,9 @@ int main(int argc, char **argv)
     restrictions_view = GTK_TREE_VIEW(
         gtk_builder_get_object(builder, "restrictions_view"));
 
+    types_model = GTK_TREE_MODEL(
+        gtk_builder_get_object(builder, "types_model"));
+
     load_dialog = GTK_FILE_CHOOSER(
         gtk_builder_get_object(builder, "load_dialog"));
     save_dialog = GTK_FILE_CHOOSER(
@@ -129,6 +135,14 @@ int main(int argc, char **argv)
     gtk_main();
 
     return(0);
+}
+
+void clear_liststore(GtkTreeView* view)
+{
+    GtkTreeModel* model = gtk_tree_view_get_model(view);
+    if(model != NULL) {
+        gtk_list_store_clear(GTK_LIST_STORE(model));
+    }
 }
 
 void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data)
@@ -215,7 +229,7 @@ void writeback(GtkTreeModel* model, gchar* path, int vars,
 void edit_started(GtkCellRenderer* renderer, GtkTreeModel* model,
             GtkCellEditable* editable, gchar* path, gpointer user_data)
 {
-        /* Remove previous adjustment */
+    /* Remove previous adjustment */
     GtkAdjustment* adj;
     g_object_get(renderer, "adjustment", &adj, NULL);
     if(adj) {
@@ -274,8 +288,7 @@ void function_edited_cb(GtkCellRendererText* renderer, gchar* path,
 bool change_function(int vars)
 {
     /* Clear model */
-    gtk_list_store_clear(
-        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)));
+    clear_liststore(function_view);
 
     /* Create the dynamic types array */
     GType* types = (GType*) malloc(3 * vars * sizeof(GType));
@@ -392,11 +405,54 @@ void restrictions_edited_cb(GtkCellRendererText* renderer, gchar* path,
     writeback(model, path, vars, new_text, user_data);
 }
 
+void toggle_type(GtkTreeView* tree_view, GtkTreePath* path,
+                 GtkTreeViewColumn* column, gpointer user_data)
+{
+    /* Check for correct column */
+    int vars = gtk_spin_button_get_value_as_int(variables);
+    int size = vars + 2;
+    GtkTreeViewColumn* dst =
+        gtk_tree_view_get_column(restrictions_view, vars * 2 - 1);
+    if(column != dst) {
+        return;
+    }
+
+    /* Get reference */
+    GtkTreeModel* model = gtk_tree_view_get_model(restrictions_view);
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter(model, &iter, path);
+
+    /* Get previous value */
+    GValue gval = G_VALUE_INIT;
+    gtk_tree_model_get_value(model, &iter, size - 2, &gval);
+    int old = g_value_get_int(&gval);
+    g_value_unset(&gval);
+
+    /* Set the next value */
+    GValue initi = G_VALUE_INIT;
+    g_value_init(&initi, G_TYPE_INT);
+
+    GValue inits = G_VALUE_INIT;
+    g_value_init(&inits, G_TYPE_STRING);
+
+    if(old == LE) {
+        g_value_set_int(&initi, EQ);
+        g_value_set_static_string(&inits, EQS);
+    } else if(old == EQ) {
+        g_value_set_int(&initi, GE);
+        g_value_set_static_string(&inits, GES);
+    } else {
+        g_value_set_int(&initi, LE);
+        g_value_set_static_string(&inits, LES);
+    }
+    gtk_list_store_set_value(GTK_LIST_STORE(model), &iter, size - 2, &initi);
+    gtk_list_store_set_value(GTK_LIST_STORE(model), &iter, 2*size - 2, &inits);
+}
+
 bool change_restrictions(int vars)
 {
     /* Clear model */
-    gtk_list_store_clear(
-        GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view)));
+    clear_liststore(restrictions_view);
 
     /* Create the dynamic types array */
     int size = vars + 2;
@@ -522,6 +578,15 @@ bool change_restrictions(int vars)
         gtk_tree_view_column_set_min_width(column, 100);
         gtk_tree_view_append_column(restrictions_view, column);
     }
+    /* Create tail columns */
+    GtkCellRenderer* type = gtk_cell_renderer_spin_new();
+    GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
+                                    "", type,  /* Title, renderer */
+                                    "markup", 2 * size - 2,
+                                    NULL);
+    gtk_tree_view_append_column(restrictions_view, column);
+
+    /* Dummy resize column */
     gtk_tree_view_append_column(restrictions_view, gtk_tree_view_column_new());
 
     /* Set the new model */
@@ -564,6 +629,27 @@ void add_row(GtkToolButton *toolbutton, gpointer user_data)
         g_value_set_string(&inits, PLUS);
         gtk_list_store_set_value(restrictions, &iter, 2 * size + i, &inits);
     }
+    /* Set type */
+    g_value_set_int(&initi, GE);
+    gtk_list_store_set_value(restrictions, &iter, size - 2, &initi);
+
+    g_value_set_string(&inits, GES);
+    gtk_list_store_set_value(restrictions, &iter, 2 * size - 2, &inits);
+
+    g_value_set_string(&inits, "");
+    gtk_list_store_set_value(restrictions, &iter, 3 * size - 2, &inits);
+
+    /* Set equality */
+    g_value_set_int(&initi, 0);
+    gtk_list_store_set_value(restrictions, &iter, size - 1, &initi);
+
+    char* text = num_name(0, false);
+    g_value_set_string(&inits, text);
+    gtk_list_store_set_value(restrictions, &iter, 2 * size - 1, &inits);
+    free(text);
+
+    g_value_set_string(&inits, "");
+    gtk_list_store_set_value(restrictions, &iter, 3 * size - 1, &inits);
 
     /* Select new row */
     GtkTreePath* model_path = gtk_tree_model_get_path(
@@ -639,8 +725,8 @@ void save_cb(GtkButton* button, gpointer user_data)
     gtk_widget_hide(GTK_WIDGET(save_dialog));
 
     /* Check extension */
-    if(!g_str_has_suffix(filename, ".floyd")) {
-        char* new_filename = g_strdup_printf("%s.floyd", filename);
+    if(!g_str_has_suffix(filename, ".bip")) {
+        char* new_filename = g_strdup_printf("%s.bip", filename);
         g_free(filename);
         filename = new_filename;
     }
