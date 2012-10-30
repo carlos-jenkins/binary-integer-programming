@@ -49,7 +49,7 @@ void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
                     gchar* new_text, gpointer user_data);
 
 void edit_started(GtkCellRenderer* renderer, GtkTreeModel* model,
-            GtkCellEditable* editable, gchar* path, gpointer user_data)
+            GtkCellEditable* editable, gchar* path, gpointer user_data);
 
 /* Functions : Function */
 void function_edit_started_cb(GtkCellRenderer* renderer,
@@ -837,16 +837,44 @@ void save(FILE* file)
      * (....)                  : Many lines as restrictions.
      */
 
+    /* Get information */
     int vars = gtk_spin_button_get_value_as_int(variables);
-    GtkListStore* function =
-        GTK_LIST_STORE(gtk_tree_view_get_model(function_view));
-
-    GtkListStore* restrictions =
-        GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view));
-    int num_restrictions = gtk_tree_model_iter_n_children(
-            GTK_TREE_MODEL(restrictions), NULL);
-
+    GtkTreeModel* function = gtk_tree_view_get_model(function_view);
     bool is_max = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(function_max));
+
+    GtkTreeModel* restrictions = gtk_tree_view_get_model(restrictions_view);
+    int num_restrictions = gtk_tree_model_iter_n_children(restrictions, NULL);
+
+    /* Model iteration */
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter_first(function, &iter);
+    GValue gval = G_VALUE_INIT;
+
+    /* Write file according to format */
+    fprintf(file, "%i\n", vars);
+    fprintf(file, "%i\n", is_max);
+
+    for(int i = 0; i < vars; i++) {
+        gtk_tree_model_get_value(function, &iter, i, &gval);
+        int val = g_value_get_int(&gval);
+        g_value_unset(&gval);
+        fprintf(file, "%i ", val);
+    }
+    fprintf(file, "\n");
+
+    fprintf(file, "%i\n", num_restrictions);
+
+    bool iter_set = gtk_tree_model_get_iter_first(restrictions, &iter);
+    while(iter_set) {
+        for(int i = 0; i < vars + 2; i++) {
+            gtk_tree_model_get_value(restrictions, &iter, i, &gval);
+            int val = g_value_get_int(&gval);
+            g_value_unset(&gval);
+            fprintf(file, "%i ", val);
+        }
+        fprintf(file, "\n");
+        iter_set = gtk_tree_model_iter_next(restrictions, &iter);
+    }
 }
 
 void load(FILE* file)
