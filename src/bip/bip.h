@@ -22,6 +22,10 @@
 #include "utils.h"
 #include "matrix.h"
 
+#define LE -1
+#define GE  1
+#define EQ  0
+
 /**
  * Binary integer programming context data structure.
  */

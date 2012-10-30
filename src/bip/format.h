@@ -23,13 +23,18 @@
 #include <glib.h>
 
 /* Lesser or equal and greater or equal unicode symbols */
-#define LE "\u2264"
-#define GE "\u2265"
+#define LES "\u2264"
+#define GES "\u2265"
 
 #define PLUS  "<span size=\"x-large\" foreground=\"#66FF00\" font_family=\"DejaVu Sans Mono\">+</span>"
 #define MINUS "<span size=\"x-large\" foreground=\"#FF0000\" font_family=\"DejaVu Sans Mono\">-</span>"
 
 #define VARS 26
+
+/* Formatting string. Requires :
+ *     - Coefficient (int, ex. 1),
+ */
+extern const char* num_format;
 
 /* Formatting string. Requires :
  *     - Coefficient (int, ex. 1),
@@ -57,5 +62,6 @@ extern const char* var_colors[];
  *         The string must be free'ed.
  */
 char* var_name(int c, int i, bool sign);
+char* num_name(int c, bool s);
 
 #endif

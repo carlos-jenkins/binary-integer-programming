@@ -153,13 +153,69 @@ void change_vars(int vars)
     }
 }
 
-/**************
- * FUNCTION
- **************/
-void function_edit_started_cb(GtkCellRenderer* renderer,
+void writeback(GtkTreeModel* model, gchar* path, int vars,
+                    gchar* new_text, gpointer user_data)
+{
+    int row = atoi(path);
+    int column = GPOINTER_TO_INT(user_data);
+    printf("%s at (%i, %i)\n", new_text, row, column);
+
+    /* Get the coefficient */
+    int coeff = 0;
+    if(!is_empty_string(new_text)) {
+        char* end;
+        coeff = (int) strtol(new_text, &end, 10);
+        if(*end != '\0') { /* Conversion wasn't successful */
+            printf("Unable to parse %s\n", new_text);
+            return;
+        }
+    }
+
+    /* Get reference to model */
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter_from_string(model, &iter, path);
+
+    /* Set the model */
+    GValue gvali = G_VALUE_INIT;
+    g_value_init(&gvali, G_TYPE_INT);
+
+    GValue gvals = G_VALUE_INIT;
+    g_value_init(&gvals, G_TYPE_STRING);
+
+    /* Coeff */
+    g_value_set_int(&gvali, coeff);
+    gtk_list_store_set_value(
+        GTK_LIST_STORE(model), &iter, column, &gvali);
+    g_value_unset(&gvali);
+
+    /* Text */
+    g_value_set_string(&gvals, "");
+    if(coeff != 0) {
+        char* text = var_name(coeff, column, column == 0);
+        g_value_set_string(&gvals, text);
+        free(text);
+    }
+    gtk_list_store_set_value(
+        GTK_LIST_STORE(model), &iter, vars + column, &gvals);
+
+    /* Sign */
+    g_value_set_string(&gvals, "");
+    if((column != 0)  && (coeff != 0)) {
+        if(coeff > 0) {
+            g_value_set_string(&gvals, PLUS);
+        } else {
+            g_value_set_string(&gvals, MINUS);
+        }
+    }
+    gtk_list_store_set_value(
+        GTK_LIST_STORE(model), &iter, 2 * vars + column, &gvals);
+    g_value_unset(&gvals);
+}
+
+void edit_started(GtkCellRenderer* renderer, GtkTreeModel* model,
             GtkCellEditable* editable, gchar* path, gpointer user_data)
 {
-    /* Remove previous adjustment */
+        /* Remove previous adjustment */
     GtkAdjustment* adj;
     g_object_get(renderer, "adjustment", &adj, NULL);
     if(adj) {
@@ -177,12 +233,8 @@ void function_edit_started_cb(GtkCellRenderer* renderer,
         int column = GPOINTER_TO_INT(user_data);
         GtkTreeIter iter;
         GValue gval = G_VALUE_INIT;
-        gtk_tree_model_get_iter_from_string(
-                        gtk_tree_view_get_model(function_view),
-                        &iter, path);
-        gtk_tree_model_get_value(
-                        gtk_tree_view_get_model(function_view),
-                        &iter, column, &gval);
+        gtk_tree_model_get_iter_from_string(model, &iter, path);
+        gtk_tree_model_get_value(model, &iter, column, &gval);
         int init = g_value_get_int(&gval);
         //printf("Found %i at %i\n", init, column);
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(editable), (double) init);
@@ -201,71 +253,23 @@ void function_edit_started_cb(GtkCellRenderer* renderer,
     g_object_set(renderer, "adjustment", adj, NULL);
 }
 
+/**************
+ * FUNCTION
+ **************/
+void function_edit_started_cb(GtkCellRenderer* renderer,
+            GtkCellEditable* editable, gchar* path, gpointer user_data)
+{
+    GtkTreeModel* model = gtk_tree_view_get_model(function_view);
+    edit_started(renderer, model, editable, path, user_data);
+}
+
 void function_edited_cb(GtkCellRendererText* renderer, gchar* path,
                     gchar* new_text, gpointer user_data)
 {
-    int row = atoi(path);
-    int column = GPOINTER_TO_INT(user_data);
+    GtkTreeModel* model = gtk_tree_view_get_model(function_view);
     int vars = gtk_spin_button_get_value_as_int(variables);
-    printf("%s at (%i, %i)\n", new_text, row, column);
-
-    /* Get the coefficient */
-    int coeff = 0;
-    if(!is_empty_string(new_text)) {
-        char* end;
-        coeff = (int) strtol(new_text, &end, 10);
-        if(*end != '\0') { /* Conversion wasn't successful */
-            printf("Unable to parse %s\n", new_text);
-            return;
-        }
-    }
-
-    /* Get reference to model */
-    GtkTreeIter iter;
-    gtk_tree_model_get_iter_from_string(
-                        gtk_tree_view_get_model(function_view),
-                        &iter, path);
-
-    /* Set the model */
-    GValue gvali = G_VALUE_INIT;
-    g_value_init(&gvali, G_TYPE_INT);
-
-    GValue gvals = G_VALUE_INIT;
-    g_value_init(&gvals, G_TYPE_STRING);
-
-    /* Coeff */
-    g_value_set_int(&gvali, coeff);
-    gtk_list_store_set_value(
-                        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)),
-                        &iter, column, &gvali);
-    g_value_unset(&gvali);
-
-    /* Text */
-    g_value_set_string(&gvals, "");
-    if(coeff != 0) {
-        char* text = var_name(coeff, column, column == 0);
-        g_value_set_string(&gvals, text);
-        free(text);
-    }
-    gtk_list_store_set_value(
-                        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)),
-                        &iter, vars + column, &gvals);
-
-    /* Sign */
-    g_value_set_string(&gvals, "");
-    if((column != 0)  && (coeff != 0)) {
-        if(coeff > 0) {
-            g_value_set_string(&gvals, PLUS);
-        } else {
-            g_value_set_string(&gvals, MINUS);
-        }
-    }
-    gtk_list_store_set_value(
-                        GTK_LIST_STORE(gtk_tree_view_get_model(function_view)),
-                        &iter, 2 * vars + column, &gvals);
-    g_value_unset(&gvals);
+    writeback(model, path, vars, new_text, user_data);
 }
-
 
 bool change_function(int vars)
 {
@@ -325,7 +329,8 @@ bool change_function(int vars)
         /* Create sign column */
         if(i > 0) {
             GtkCellRenderer* sign = gtk_cell_renderer_text_new();
-            GtkTreeViewColumn* sign_c = gtk_tree_view_column_new_with_attributes(
+            GtkTreeViewColumn* sign_c =
+                gtk_tree_view_column_new_with_attributes(
                                             "", sign,  /* Title, renderer */
                                             "markup", 2 * vars + i,
                                             NULL);
@@ -372,33 +377,194 @@ bool change_function(int vars)
 /**************
  * RESTRICTIONS
  **************/
+void restrictions_edit_started_cb(GtkCellRenderer* renderer,
+            GtkCellEditable* editable, gchar* path, gpointer user_data)
+{
+    GtkTreeModel* model = gtk_tree_view_get_model(restrictions_view);
+    edit_started(renderer, model, editable, path, user_data);
+}
+
+void restrictions_edited_cb(GtkCellRendererText* renderer, gchar* path,
+                    gchar* new_text, gpointer user_data)
+{
+    GtkTreeModel* model = gtk_tree_view_get_model(restrictions_view);
+    int vars = gtk_spin_button_get_value_as_int(variables) + 2;
+    writeback(model, path, vars, new_text, user_data);
+}
+
 bool change_restrictions(int vars)
 {
     /* Clear model */
     gtk_list_store_clear(
         GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view)));
 
+    /* Create the dynamic types array */
+    int size = vars + 2;
+    GType* types = (GType*) malloc(3 * size * sizeof(GType));
+    if(types == NULL) {
+        return false;
+    }
+
+    /* Set type in the dynamic types array */
+    for(int i = 0; i < size; i++) {
+        types[i] = G_TYPE_INT;               /* Coeffs */
+        types[size + i] = G_TYPE_STRING;     /* Text   */
+        types[2 * size + i] = G_TYPE_STRING; /* Signs  */
+    }
+
+    /* Create and fill the new model */
+    GtkListStore* restrictions = gtk_list_store_newv(3 * size, types);
+    GtkTreeIter iter;
+
+    GValue initi = G_VALUE_INIT;
+    g_value_init(&initi, G_TYPE_INT);
+
+    GValue inits = G_VALUE_INIT;
+    g_value_init(&inits, G_TYPE_STRING);
+
+    for(int j = 0; j < vars; j++) {
+
+        /* Set the coefficients */
+        gtk_list_store_append(restrictions, &iter);
+        for(int i = 0; i < vars; i++) {
+
+            int calc = 0;
+            if(j == i) {
+                calc = 1;
+            }
+
+            g_value_set_int(&initi, calc);
+            gtk_list_store_set_value(restrictions, &iter, i, &initi);
+
+            g_value_set_string(&inits, "");
+            if(j == i) {
+                char* text = var_name(calc, i, false);
+                g_value_set_string(&inits, text);
+                free(text);
+            }
+            gtk_list_store_set_value(restrictions, &iter, size + i, &inits);
+
+            g_value_set_string(&inits, "");
+            if(j == i) {
+                g_value_set_string(&inits, PLUS);
+            }
+            gtk_list_store_set_value(restrictions, &iter, 2 * size + i, &inits);
+        }
+
+        /* Set type */
+        g_value_set_int(&initi, GE);
+        gtk_list_store_set_value(restrictions, &iter, size - 2, &initi);
+
+        g_value_set_string(&inits, GES);
+        gtk_list_store_set_value(restrictions, &iter, 2 * size - 2, &inits);
+
+        g_value_set_string(&inits, "");
+        gtk_list_store_set_value(restrictions, &iter, 3 * size - 2, &inits);
+
+        /* Set equality */
+        g_value_set_int(&initi, 0);
+        gtk_list_store_set_value(restrictions, &iter, size - 1, &initi);
+
+        char* text = num_name(0, false);
+        g_value_set_string(&inits, text);
+        gtk_list_store_set_value(restrictions, &iter, 2 * size - 1, &inits);
+        free(text);
+
+        g_value_set_string(&inits, "");
+        gtk_list_store_set_value(restrictions, &iter, 3 * size - 1, &inits);
+
+    }
+
+    /* Clear the previous columns */
+    for(int i = gtk_tree_view_get_n_columns(restrictions_view) - 1; i >= 0; i--) {
+        gtk_tree_view_remove_column(
+                                restrictions_view,
+                                gtk_tree_view_get_column(restrictions_view, i)
+                            );
+    }
+
+    /* Create the new columns */
+    for(int i = 0; i < vars; i++) {
+
+        /* Create sign column */
+        if(i > 0) {
+            GtkCellRenderer* sign = gtk_cell_renderer_text_new();
+            GtkTreeViewColumn* sign_c =
+                gtk_tree_view_column_new_with_attributes(
+                                            "", sign,  /* Title, renderer */
+                                            "markup", 2 * size + i,
+                                            NULL);
+            gtk_tree_view_append_column(restrictions_view, sign_c);
+        }
+
+        /* Create text column */
+        /* Create and configure cell */
+        GtkCellRenderer* cell = gtk_cell_renderer_spin_new();
+
+        gtk_cell_renderer_set_alignment(cell, 1.0, 0.5);
+        g_object_set(cell, "editable", true, NULL);
+
+        /* Configure callbacks */
+        g_signal_connect(G_OBJECT(cell),
+                    "editing-started", G_CALLBACK(restrictions_edit_started_cb),
+                    GINT_TO_POINTER(i));
+        restrictions_edit_started_cb(cell, NULL, NULL, GINT_TO_POINTER(i));
+
+        g_signal_connect(G_OBJECT(cell),
+                         "edited", G_CALLBACK(restrictions_edited_cb),
+                         GINT_TO_POINTER(i));
+
+        /* Configure column */
+        GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
+                                        "", cell,  /* Title, renderer */
+                                        "markup", size + i,
+                                        NULL);
+        gtk_tree_view_column_set_min_width(column, 100);
+        gtk_tree_view_append_column(restrictions_view, column);
+    }
+    gtk_tree_view_append_column(restrictions_view, gtk_tree_view_column_new());
+
+    /* Set the new model */
+    gtk_tree_view_set_model(restrictions_view, GTK_TREE_MODEL(restrictions));
+
+    /* Free resources */
+    g_object_unref(G_OBJECT(restrictions));
+    free(types);
+
     return true;
 }
 
 void add_row(GtkToolButton *toolbutton, gpointer user_data)
 {
+    /* Context data */
     GtkListStore* restrictions =
         GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view));
-    int rows = gtk_tree_model_iter_n_children(
-                                    GTK_TREE_MODEL(restrictions), NULL);
+    int vars = gtk_spin_button_get_value_as_int(variables);
+
+    GValue initi = G_VALUE_INIT;
+    g_value_init(&initi, G_TYPE_INT);
+
+    GValue inits = G_VALUE_INIT;
+    g_value_init(&inits, G_TYPE_STRING);
 
     GtkTreeIter iter;
     gtk_list_store_append(restrictions, &iter);
-    printf("TODO: Implement add_row()\n");
-    //gtk_list_store_set(restrictions, &iter,
-                        //0, sequence_name(rows),
-                        //1, 1,
-                        //2, 1,
-                        //3, 1,
-                        //4, "1",
-                        //-1);
-    //FIXMEFIXME
+
+    for(int i = 0; i < vars; i++) {
+
+        g_value_set_int(&initi, 1);
+        gtk_list_store_set_value(restrictions, &iter, i, &initi);
+
+        char* text = var_name(1, i, false);
+        g_value_set_string(&inits, text);
+        gtk_list_store_set_value(restrictions, &iter, vars + i, &inits);
+        free(text);
+
+        g_value_set_string(&inits, PLUS);
+        gtk_list_store_set_value(restrictions, &iter, 2 * vars + i, &inits);
+    }
+
+    /* Select new row */
     GtkTreePath* model_path = gtk_tree_model_get_path(
                                 GTK_TREE_MODEL(restrictions), &iter);
     gtk_tree_view_set_cursor(restrictions_view, model_path,
@@ -412,13 +578,15 @@ void remove_row(GtkToolButton *toolbutton, gpointer user_data)
 {
     GtkListStore* restrictions =
         GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view));
+    int vars = gtk_spin_button_get_value_as_int(variables);
     int rows = gtk_tree_model_iter_n_children(
                                     GTK_TREE_MODEL(restrictions), NULL);
-    if(rows < 3) {
+    if(rows <= vars) {
         return;
     }
 
-    GtkTreeSelection* selection = gtk_tree_view_get_selection(restrictions_view);
+    GtkTreeSelection* selection =
+        gtk_tree_view_get_selection(restrictions_view);
     GtkTreeIter iter;
     if(gtk_tree_selection_get_selected(selection, NULL, &iter)) {
 

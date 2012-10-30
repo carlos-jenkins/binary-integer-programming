@@ -18,6 +18,9 @@
 
 #include "format.h"
 
+const char* num_format =
+"<span size=\"x-large\" font_family=\"DejaVu Sans Mono\">%i</span>";
+
 const char* var_format =
 "<span size=\"x-large\" font_family=\"DejaVu Sans Mono\">%i"
     "<span foreground=\"%s\">"
@@ -70,5 +73,13 @@ char* var_name(int c, int i, bool s) /* Coeff, Index, Sign */
                               var_colors[i % VARS],
                               var_names[i % VARS],
                               (i / VARS) + 1);
+    return r;
+}
+
+char* num_name(int c, bool s) /* Coeff, Sign */
+{
+    if(!s && (c < 0)) { c *= -1; }
+
+    char* r = g_strdup_printf(num_format, c);
     return r;
 }
