@@ -45,6 +45,9 @@ void clear_liststore(GtkTreeView* view);
 void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data);
 void change_vars(int vars);
 
+void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
+                    gchar* new_text, gpointer user_data);
+
 /* Functions : Function */
 void function_edit_started_cb(GtkCellRenderer* renderer,
             GtkCellEditable* editable, gchar* path, gpointer user_data);
@@ -58,6 +61,11 @@ void restrictions_edit_started_cb(GtkCellRenderer* renderer,
             GtkCellEditable* editable, gchar* path, gpointer user_data);
 void restrictions_edited_cb(GtkCellRendererText* renderer, gchar* path,
                     gchar* new_text, gpointer user_data);
+void num_edited_cb(GtkCellRendererText* renderer, gchar* path,
+                    gchar* new_text, gpointer user_data);
+
+void toggle_type(GtkTreeView* tree_view, GtkTreePath* path,
+                 GtkTreeViewColumn* column, gpointer user_data);
 
 bool change_restrictions(int vars);
 
@@ -167,7 +175,7 @@ void change_vars(int vars)
     }
 }
 
-void writeback(GtkTreeModel* model, gchar* path, int vars,
+void writeback(GtkTreeModel* model, gchar* path, int vars, bool is_var,
                     gchar* new_text, gpointer user_data)
 {
     int row = atoi(path);
@@ -204,7 +212,11 @@ void writeback(GtkTreeModel* model, gchar* path, int vars,
 
     /* Text */
     g_value_set_string(&gvals, "");
-    if(coeff != 0) {
+    if(!is_var) {
+        char* text = num_name(coeff, true);
+        g_value_set_string(&gvals, text);
+        free(text);
+    } else if(coeff != 0) {
         char* text = var_name(coeff, column, column == 0);
         g_value_set_string(&gvals, text);
         free(text);
@@ -214,11 +226,13 @@ void writeback(GtkTreeModel* model, gchar* path, int vars,
 
     /* Sign */
     g_value_set_string(&gvals, "");
-    if((column != 0)  && (coeff != 0)) {
-        if(coeff > 0) {
-            g_value_set_string(&gvals, PLUS);
-        } else {
-            g_value_set_string(&gvals, MINUS);
+    if(is_var) {
+        if((column != 0)  && (coeff != 0)) {
+            if(coeff > 0) {
+                g_value_set_string(&gvals, PLUS);
+            } else {
+                g_value_set_string(&gvals, MINUS);
+            }
         }
     }
     gtk_list_store_set_value(
@@ -282,7 +296,7 @@ void function_edited_cb(GtkCellRendererText* renderer, gchar* path,
 {
     GtkTreeModel* model = gtk_tree_view_get_model(function_view);
     int vars = gtk_spin_button_get_value_as_int(variables);
-    writeback(model, path, vars, new_text, user_data);
+    writeback(model, path, vars, true, new_text, user_data);
 }
 
 bool change_function(int vars)
@@ -402,7 +416,15 @@ void restrictions_edited_cb(GtkCellRendererText* renderer, gchar* path,
 {
     GtkTreeModel* model = gtk_tree_view_get_model(restrictions_view);
     int vars = gtk_spin_button_get_value_as_int(variables) + 2;
-    writeback(model, path, vars, new_text, user_data);
+    writeback(model, path, vars, true, new_text, user_data);
+}
+
+void num_edited_cb(GtkCellRendererText* renderer, gchar* path,
+                    gchar* new_text, gpointer user_data)
+{
+    GtkTreeModel* model = gtk_tree_view_get_model(restrictions_view);
+    int vars = gtk_spin_button_get_value_as_int(variables) + 2;
+    writeback(model, path, vars, false, new_text, user_data);
 }
 
 void toggle_type(GtkTreeView* tree_view, GtkTreePath* path,
@@ -577,9 +599,15 @@ bool change_restrictions(int vars)
                     GINT_TO_POINTER(i));
         restrictions_edit_started_cb(cell, NULL, NULL, GINT_TO_POINTER(i));
 
-        g_signal_connect(G_OBJECT(cell),
+        if(i < size - 2) {
+            g_signal_connect(G_OBJECT(cell),
                          "edited", G_CALLBACK(restrictions_edited_cb),
                          GINT_TO_POINTER(i));
+        } else {
+            g_signal_connect(G_OBJECT(cell),
+                         "edited", G_CALLBACK(num_edited_cb),
+                         GINT_TO_POINTER(i));
+        }
 
         /* Configure column */
         GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes(
