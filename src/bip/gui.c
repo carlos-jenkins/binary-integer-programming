@@ -24,6 +24,9 @@
 #include "format.h"
 #include <gtk/gtk.h>
 
+/* Context */
+bip_context* c = NULL;
+
 /* GUI */
 GtkWindow* window;
 GtkSpinButton* variables;
@@ -744,8 +747,60 @@ void remove_row(GtkToolButton *toolbutton, gpointer user_data)
  **************/
 void process(GtkButton* button, gpointer user_data)
 {
-    /* FIXMEFIXME */
-    DEBUG("TODO: Implement process()\n");
+    /* Get information */
+    GtkTreeModel* function = gtk_tree_view_get_model(function_view);
+    GtkTreeModel* restrictions = gtk_tree_view_get_model(restrictions_view);
+
+    bool is_max = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(function_max));
+
+    int num_vars = gtk_spin_button_get_value_as_int(variables);
+    int num_rest = gtk_tree_model_iter_n_children(restrictions, NULL);
+
+    /* Try to create the new context */
+    if(c != NULL) {
+        bip_context_free(c);
+    }
+    c = bip_context_new(num_vars, num_rest);
+    if(c == NULL) {
+        show_error(window, "Unable to allocate enough memory for "
+                           "this problem. Sorry.");
+        return;
+    }
+
+    /* Fill context */
+    c->maximize = is_max;
+
+    /* Function coefficients */
+    /* FIXME */
+
+    /* Restriction coefficients */
+    /* FIXME */
+
+    /* Execute algorithm */
+    bool success = implicit_enumeration(c);
+    if(!success) {
+        show_error(window, "Error while processing the information.\n"
+                           "Please check your data.");
+    }
+
+    /* Generate report */
+    bool report_created = implicit_report(c);
+    if(!report_created) {
+        show_error(window, "Report could not be created.\n"
+                           "Please check your data.");
+    } else {
+        DEBUG("Report created at reports/implicit.tex\n");
+
+        int as_pdf = latex2pdf("implicit", "reports");
+        if(as_pdf == 0) {
+            DEBUG("PDF version available at reports/implicit.pdf\n");
+        } else {
+            char* error = g_strdup_printf("Unable to convert report to PDF.\n"
+                                          "Status: %i.", as_pdf);
+            show_error(window, error);
+            g_free(error);
+        }
+    }
 }
 
 void save_cb(GtkButton* button, gpointer user_data)
