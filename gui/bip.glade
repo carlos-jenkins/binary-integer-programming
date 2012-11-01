@@ -427,43 +427,68 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToolbar" id="restrictions_actions">
+          <object class="GtkBox" id="restrictions_action">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="halign">end</property>
-            <property name="toolbar_style">icons</property>
-            <property name="show_arrow">False</property>
-            <property name="icon_size">1</property>
             <child>
-              <object class="GtkToolButton" id="remove_row">
-                <property name="use_action_appearance">False</property>
+              <object class="GtkLabel" id="restrictions_implicit">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">Remove</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-remove</property>
-                <signal name="clicked" handler="remove_row" swapped="no"/>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;small&gt;Implicit restriction:&lt;/small&gt; &lt;i&gt;x&lt;/i&gt;&lt;sub&gt;i&lt;/sub&gt; = &lt;b&gt;1&lt;/b&gt; or &lt;b&gt;0&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="add_row">
-                <property name="use_action_appearance">False</property>
+              <object class="GtkToolbar" id="restrictions_actions">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">Add</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-add</property>
-                <signal name="clicked" handler="add_row" swapped="no"/>
+                <property name="halign">end</property>
+                <property name="toolbar_style">icons</property>
+                <property name="show_arrow">False</property>
+                <property name="icon_size">1</property>
+                <child>
+                  <object class="GtkToolButton" id="remove_row">
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="label" translatable="yes">Remove</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-remove</property>
+                    <signal name="clicked" handler="remove_row" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="add_row">
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="label" translatable="yes">Add</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-add</property>
+                    <signal name="clicked" handler="add_row" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="homogeneous">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
