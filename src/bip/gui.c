@@ -770,11 +770,29 @@ void process(GtkButton* button, gpointer user_data)
     /* Fill context */
     c->maximize = is_max;
 
+    GtkTreeIter iter;
+    GValue gval = G_VALUE_INIT;
+
     /* Function coefficients */
-    /* FIXME */
+    gtk_tree_model_get_iter_first(function, &iter);
+    for(int i = 0; i < num_vars; i++) {
+        gtk_tree_model_get_value(function, &iter, i, &gval);
+        int val = g_value_get_int(&gval);
+        g_value_unset(&gval);
+        c->function[i] = val;
+    }
 
     /* Restriction coefficients */
-    /* FIXME */
+    bool iter_set = gtk_tree_model_get_iter_first(restrictions, &iter);
+    for(int i = 0; iter_set && (i < num_vars); i++) {
+        for(int j = 0; j < num_vars + 2; j++) {
+            gtk_tree_model_get_value(restrictions, &iter, j, &gval);
+            int val = g_value_get_int(&gval);
+            g_value_unset(&gval);
+            c->restrictions->data[i][j] = val;
+        }
+        iter_set = gtk_tree_model_iter_next(restrictions, &iter);
+    }
 
     /* Execute algorithm */
     bool success = implicit_enumeration(c);
