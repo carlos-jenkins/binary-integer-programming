@@ -58,4 +58,11 @@ void bip_context_free(bip_context* c);
  */
 bool implicit_enumeration(bip_context* c);
 
+bool impl_aux(bip_context* c, int* fixed, int* alpha,
+                              int* workplace, int* candidate);
+int best_fit(bip_context* c, int* fixed);
+bool check_fact(bip_context* c, int* fixed);
+bool check_future_fact(bip_context* c, int* fixed);
+bool check_restrictions(bip_context* c, int* vars);
+
 #endif
