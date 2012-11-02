@@ -32,10 +32,13 @@ bip_context* bip_context_new(int num_vars, int num_rest)
     }
 
     /* Try to allocate dynamic memory */
-    c->restrictions = matrix_new(num_rest, num_vars + 2, 0);
-    if(c->restrictions == NULL) {
-        free(c);
-        return NULL;
+    c->restrictions = NULL;
+    if(num_rest > 0) {
+        c->restrictions = matrix_new(num_rest, num_vars + 2, 0);
+        if(c->restrictions == NULL) {
+            free(c);
+            return NULL;
+        }
     }
     c->function = (int*) malloc(num_vars * sizeof(int));
     if(c->function == NULL) {
@@ -68,7 +71,9 @@ bip_context* bip_context_new(int num_vars, int num_rest)
 
 void bip_context_free(bip_context* c)
 {
-    matrix_free(c->restrictions);
+    if(c->restrictions != NULL) {
+        matrix_free(c->restrictions);
+    }
     fclose(c->report_buffer);
     free(c->function);
     free(c);
@@ -127,5 +132,15 @@ bool implicit_enumeration(bip_context* c)
 void impl_aux(bip_context* c, int* fixed, int* alpha,
                               int* workplace, int* candidate, int level)
 {
+    //int bf = best_fit(c, fixed);
+    //if(bf > alpha) {
+        //alpha = bf;
+        // Close node
+    //}
     return;
 }
+
+//int best_fit(bip_context* c, int* fixed);
+//bool check_fact(bip_context* c, int* fixed);
+//bool check_future_fact(bip_context* c, int* fixed);
+//bool check_restrictions(bip_context* c, int* vars);

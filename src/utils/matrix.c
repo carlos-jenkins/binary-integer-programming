@@ -37,6 +37,10 @@ bool matrix_copy(matrix* src, matrix* dest)
 
 void matrix_fill(matrix* m, MATRIX_DATATYPE value)
 {
+    if(m == NULL) {
+        return;
+    }
+
     for(int i = 0; i < m->rows; i++) {
         for(int j = 0; j < m->columns; j++) {
             m->data[i][j] = value;
@@ -119,8 +123,12 @@ matrix* matrix_new(int rows, int columns, MATRIX_DATATYPE fill)
 
 unsigned int matrix_sizeof(matrix* m)
 {
-    return (m->rows * sizeof(MATRIX_DATATYPE*)) +
-           (m->rows * (m->columns * sizeof(MATRIX_DATATYPE)));
+    if(m == NULL) {
+        return 0;
+    }
+    int s = (m->rows * sizeof(MATRIX_DATATYPE*)) +
+            (m->rows * (m->columns * sizeof(MATRIX_DATATYPE)));
+    return s;
 }
 
 void matrix_free(matrix* m)

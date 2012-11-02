@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     gtk_builder_connect_signals(builder, NULL);
 
     /* Initialize interface */
-    change_vars(2);
+    change_vars(1);
 
     g_object_unref(G_OBJECT(builder));
     gtk_widget_show(GTK_WIDGET(window));
@@ -169,11 +169,11 @@ void vars_changed_cb(GtkSpinButton* spinbutton, gpointer user_data)
 
 bool change_vars(int vars)
 {
-
-    if(vars < 2) {
-        show_error(window, "You need to define at least 2 variables. Sorry.");
+    if(vars < 1) {
+        show_error(window, "You need to define at least 1 variable. Sorry.");
         return false;
     }
+
     bool changed1 = change_function(vars);
     bool changed2 = change_restrictions(vars);
 
@@ -510,68 +510,8 @@ bool change_restrictions(int vars)
         types[2 * size + i] = G_TYPE_STRING; /* Signs  */
     }
 
-    /* Create and fill the new model */
+    /* Create the new model */
     GtkListStore* restrictions = gtk_list_store_newv(3 * size, types);
-    GtkTreeIter iter;
-
-    GValue initi = G_VALUE_INIT;
-    g_value_init(&initi, G_TYPE_INT);
-
-    GValue inits = G_VALUE_INIT;
-    g_value_init(&inits, G_TYPE_STRING);
-
-    for(int j = 0; j < vars; j++) {
-
-        /* Set the coefficients */
-        gtk_list_store_append(restrictions, &iter);
-        for(int i = 0; i < vars; i++) {
-
-            int calc = 0;
-            if(j == i) {
-                calc = 1;
-            }
-
-            g_value_set_int(&initi, calc);
-            gtk_list_store_set_value(restrictions, &iter, i, &initi);
-
-            g_value_set_string(&inits, "");
-            if(j == i) {
-                char* text = var_name(calc, i, false);
-                g_value_set_string(&inits, text);
-                free(text);
-            }
-            gtk_list_store_set_value(restrictions, &iter, size + i, &inits);
-
-            g_value_set_string(&inits, "");
-            if(j == i) {
-                g_value_set_string(&inits, PLUS);
-            }
-            gtk_list_store_set_value(restrictions, &iter, 2 * size + i, &inits);
-        }
-
-        /* Set type */
-        g_value_set_int(&initi, GE);
-        gtk_list_store_set_value(restrictions, &iter, size - 2, &initi);
-
-        g_value_set_string(&inits, GES);
-        gtk_list_store_set_value(restrictions, &iter, 2 * size - 2, &inits);
-
-        g_value_set_string(&inits, "");
-        gtk_list_store_set_value(restrictions, &iter, 3 * size - 2, &inits);
-
-        /* Set equality */
-        g_value_set_int(&initi, 0);
-        gtk_list_store_set_value(restrictions, &iter, size - 1, &initi);
-
-        char* text = num_name(0, false);
-        g_value_set_string(&inits, text);
-        gtk_list_store_set_value(restrictions, &iter, 2 * size - 1, &inits);
-        free(text);
-
-        g_value_set_string(&inits, "");
-        gtk_list_store_set_value(restrictions, &iter, 3 * size - 1, &inits);
-
-    }
 
     /* Clear the previous columns */
     for(int i = gtk_tree_view_get_n_columns(restrictions_view) - 1; i >= 0; i--) {
@@ -679,6 +619,7 @@ void add_row(GtkToolButton* toolbutton, gpointer user_data)
         g_value_set_string(&inits, PLUS);
         gtk_list_store_set_value(restrictions, &iter, 2 * size + i, &inits);
     }
+
     /* Set type */
     g_value_set_int(&initi, GE);
     gtk_list_store_set_value(restrictions, &iter, size - 2, &initi);
@@ -715,12 +656,8 @@ void remove_row(GtkToolButton *toolbutton, gpointer user_data)
 {
     GtkListStore* restrictions =
         GTK_LIST_STORE(gtk_tree_view_get_model(restrictions_view));
-    int vars = gtk_spin_button_get_value_as_int(variables);
     int rows = gtk_tree_model_iter_n_children(
                                     GTK_TREE_MODEL(restrictions), NULL);
-    if(rows <= vars) {
-        return;
-    }
 
     GtkTreeSelection* selection =
         gtk_tree_view_get_selection(restrictions_view);
