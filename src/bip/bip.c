@@ -80,8 +80,42 @@ bool implicit_enumeration(bip_context* c)
     /* Start counting time */
     GTimer* timer = g_timer_new();
 
-    /* Run the FooBar algorithm */
-    /* FIXMEFIXMEFIXME */
+    /* Variables */
+    int v = c->num_vars;
+    int alpha = INT_MAX;
+    if(c->maximize) {
+        alpha = INT_MIN;
+    }
+
+    /* Try to allocate memory */
+    int* fixed = (int*) malloc(v * sizeof(int));
+    if(fixed == NULL) {
+        return false;
+    }
+    int* workplace = (int*) malloc(v * sizeof(int));
+    if(workplace == NULL) {
+        free(fixed);
+        return false;
+    }
+    int* candidate = (int*) malloc(v * sizeof(int));
+    if(candidate == NULL) {
+        free(fixed);
+        free(workplace);
+        return false;
+    }
+
+    /* Initialize vectors */
+    for(int i = 0; i < v; i++) {
+        fixed[i]     = -1;
+        workplace[i] = -1;
+        candidate[i] = -1;
+    }
+
+    /* Solve problem */
+    impl_aux(c, fixed, &alpha, workplace, candidate, 0);
+
+    /* Check if problem was solved */
+    /* FIXMEFIXME */
 
     /* Stop counting time */
     g_timer_stop(timer);
@@ -90,3 +124,8 @@ bool implicit_enumeration(bip_context* c)
     return true;
 }
 
+void impl_aux(bip_context* c, int* fixed, int* alpha,
+                              int* workplace, int* candidate, int level)
+{
+    return;
+}
