@@ -130,17 +130,50 @@ bool implicit_enumeration(bip_context* c)
 void impl_aux(bip_context* c, int* fixed, int* alpha,
                               int* workplace, int* candidate, int level)
 {
-    //int bf = best_fit(c, fixed);
-    //if(bf > alpha) {
-        //alpha = bf;
-        // Close node
-    //}
+    /* Calculate best fit */
+    int bf = best_fit(c, fixed, workplace);
+    if(abs(bf) <= abs(*alpha)) {
+        // FIXME: Close node with status "doesn't improve performance"
+        return;
+    }
+
+    /* Check factibility */
+    bool fact = check_restrictions(c, workplace);
+    if(fact) {
+        /* Set the solution as new candidate */
+        for(int i = 0; i < c->num_vars; i++) {
+            candidate[i] = workplace[i];
+        }
+
+        /* Set alpha as the new performance */
+        (*alpha) = bf;
+
+        // FIXME: Close node with status "new candidate solution"
+        return;
+    }
+
+    /* Not factible, check possible future factibility */
+    bool future_fact = check_future_fact(c, fixed, workplace);
+    if(!future_fact) {
+        // FIXME: Close node with status "no factible and no new future factibility"
+        return;
+    }
+
+    // FIXME: Mark node with status "not factible but with future factibility"
+    // FIXME: Expand node....
+    fixed[level] = 0;
+    // FIXME: Expand to the left
+    // FIXME: Flush
+    fixed[level] = 1;
+    // FIXME: Expand to the right
+    // FIXME: Flush
+
     return;
 }
 
-bool best_fit(bip_context* c, int* fixed, int* workplace)
-{
-    /* Flush fixed to workplace */
+int reset_workplace(bip_context* c, int* fixed, int* workplace) {
+
+    /* Copy fixed variables to the workplace */
     int i = 0;
     for(; i < c->num_vars; i++) {
         int n = fixed[i];
@@ -149,7 +182,18 @@ bool best_fit(bip_context* c, int* fixed, int* workplace)
         }
         workplace[i] = n;
     }
-    i--;
+
+    for(int j = i; j < c->num_vars; j++) {
+        workplace[j] = -1;
+    }
+
+    return i;
+}
+
+int best_fit(bip_context* c, int* fixed, int* workplace)
+{
+    /* Flush fixed to workplace */
+    int i = reset_workplace(c, fixed, workplace);
 
     /* Set the free variables to the best fit */
     int for_pos = 0;
@@ -170,12 +214,36 @@ bool best_fit(bip_context* c, int* fixed, int* workplace)
         }
     }
 
-    return check_restrictions(c, workplace);
+    /* Calculate the best fit */
+    int bf = 0;
+    for(int i = 0; i < c->num_vars; i++) {
+        bf = bf + (c->function[i] * workplace[i]);
+    }
+    return bf;
 }
 
-//bool check_fact(bip_context* c, int* fixed);
-//bool check_future_fact(bip_context* c, int* fixed);
 bool check_restrictions(bip_context* c, int* vars)
 {
+    // FIXME: Implement.
+    if(c->restrictions == NULL) {
+        return true;
+    }
+
+    bool fact = true;
+    for(int i = 0; i < c->num_vars; i++) {
+        int n = 0;
+        int j = 0;
+        for(; j < c->num_rest; j++) {
+            n = n + (c->restrictions->data[i][j] * vars[i]);
+        }
+    }
+
+    return fact;
+}
+
+bool check_future_fact(bip_context* c, int* fixed, int* workplace)
+{
+    // FIXME: Implement.
     return true;
 }
+
