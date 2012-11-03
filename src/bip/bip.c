@@ -21,7 +21,7 @@
 bip_context* bip_context_new(int num_vars, int num_rest)
 {
     /* Check input is correct */
-    if(num_vars < 1) {
+    if((num_vars < 1) || (num_rest < 0)) {
         return NULL;
     }
 
@@ -71,9 +71,7 @@ bip_context* bip_context_new(int num_vars, int num_rest)
 
 void bip_context_free(bip_context* c)
 {
-    if(c->restrictions != NULL) {
-        matrix_free(c->restrictions);
-    }
+    matrix_free(c->restrictions);
     fclose(c->report_buffer);
     free(c->function);
     free(c);
@@ -140,7 +138,44 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
     return;
 }
 
-//int best_fit(bip_context* c, int* fixed);
+bool best_fit(bip_context* c, int* fixed, int* workplace)
+{
+    /* Flush fixed to workplace */
+    int i = 0;
+    for(; i < c->num_vars; i++) {
+        int n = fixed[i];
+        if(n == -1) {
+            break;
+        }
+        workplace[i] = n;
+    }
+    i--;
+
+    /* Set the free variables to the best fit */
+    int for_pos = 0;
+    int for_neg = 1;
+    if(c->maximize) {
+        for_pos = 1;
+        for_neg = 0;
+    }
+
+    for(; i < c->num_vars; i++) {
+        int n = c->function[i];
+        if(n > 0) {
+            workplace[i] = for_pos;
+        } else if(n < 0) {
+            workplace[i] = for_neg;
+        } else {
+            workplace[i] = 0;
+        }
+    }
+
+    return check_restrictions(c, workplace);
+}
+
 //bool check_fact(bip_context* c, int* fixed);
 //bool check_future_fact(bip_context* c, int* fixed);
-//bool check_restrictions(bip_context* c, int* vars);
+bool check_restrictions(bip_context* c, int* vars)
+{
+    return true;
+}

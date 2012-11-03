@@ -60,9 +60,9 @@ bool implicit_enumeration(bip_context* c);
 
 void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
                               int* candidate, int level);
-int best_fit(bip_context* c, int* fixed);
-bool check_fact(bip_context* c, int* fixed);
-bool check_future_fact(bip_context* c, int* fixed);
+bool best_fit(bip_context* c, int* fixed, int* workplace);
+bool check_fact(bip_context* c, int* fixed, int* workplace);
+bool check_future_fact(bip_context* c, int* fixed, int* workplace);
 bool check_restrictions(bip_context* c, int* vars);
 
 #endif
