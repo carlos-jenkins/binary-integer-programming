@@ -938,7 +938,7 @@ void load(FILE* file)
     /* Load number of restrictions */
     int num_restrictions = 0;
     fscanf(file, "%i%*c", &num_restrictions);
-    for(int i = 0; i < (num_restrictions - vars); i++) {
+    for(int i = 0; i < num_restrictions; i++) {
         add_row(NULL, NULL);
     }
 

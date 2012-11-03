@@ -52,6 +52,11 @@ bip_context* bip_context_new(int num_vars, int num_rest)
         c->function[i] = 0;
     }
 
+    /* Save variables */
+    c->num_vars = num_vars;
+    c->num_rest = num_rest;
+    c->maximize = true;
+
     /* Common */
     c->status = -1;
     c->execution_time = 0.0;
@@ -255,7 +260,7 @@ bool check_restrictions(bip_context* c, int* vars)
 
     bool fact = true;
 
-    for(int i = 0; fact && (i < c->num_vars); i++) {
+    for(int i = 0; fact && (i < c->num_rest); i++) {
 
         int type = c->restrictions->data[i][c->num_vars];
         int equl = c->restrictions->data[i][c->num_vars + 1];
