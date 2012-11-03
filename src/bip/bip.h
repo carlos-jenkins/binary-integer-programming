@@ -60,7 +60,10 @@ bool implicit_enumeration(bip_context* c);
 
 void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
                               int* candidate, int level);
+
 int reset_workplace(bip_context* c, int* fixed, int* workplace);
+int dot_product(int* vector1, int* vector2, int size);
+
 int best_fit(bip_context* c, int* fixed, int* workplace);
 bool check_future_fact(bip_context* c, int* fixed, int* workplace);
 bool check_restrictions(bip_context* c, int* vars);

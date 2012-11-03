@@ -210,6 +210,15 @@ int reset_workplace(bip_context* c, int* fixed, int* workplace)
     return i;
 }
 
+int dot_product(int* vector1, int* vector2, int size)
+{
+    int dp = 0;
+    for(int i = 0; i < size; i++) {
+        dp = dp + (vector1[i] * vector2[i]);
+    }
+    return dp;
+}
+
 int best_fit(bip_context* c, int* fixed, int* workplace)
 {
     /* Flush fixed to workplace */
@@ -235,11 +244,7 @@ int best_fit(bip_context* c, int* fixed, int* workplace)
     }
 
     /* Calculate the best fit */
-    int bf = 0;
-    for(int i = 0; i < c->num_vars; i++) {
-        bf = bf + (c->function[i] * workplace[i]);
-    }
-    return bf;
+    return dot_product(c->function, workplace, c->num_vars);
 }
 
 bool check_restrictions(bip_context* c, int* vars)
@@ -250,25 +255,24 @@ bool check_restrictions(bip_context* c, int* vars)
 
     bool fact = true;
 
-    for(int i = 0; i < c->num_vars; i++) {
-        for(int j = 0; j < c->num_rest; j++) {
+    for(int i = 0; fact && (i < c->num_vars); i++) {
 
-            int type = c->restrictions->data[i][c->num_vars];
-            int equl = c->restrictions->data[i][c->num_vars + 1];
+        int type = c->restrictions->data[i][c->num_vars];
+        int equl = c->restrictions->data[i][c->num_vars + 1];
 
-            int top = INT_MAX;
-            if((type == GE) || (type == EQ)) {
-            }
+        int real = dot_product(c->restrictions->data[i], vars, c->num_vars);
 
-            int bottom = INT_MIN;
-            if((type == LE) || (type == EQ)) {
-            }
-
-            fact = fact && (bottom <= equl) && (equl <= top);
-            if(!fact) {
-                break;
-            }
+        if(type == GE) {
+            fact = fact && (real >= equl);
+            continue;
         }
+
+        if(type == LE) {
+            fact = fact && (real <= equl);
+            continue;
+        }
+
+        fact = fact && (real == equl);
     }
 
     return fact;
@@ -276,6 +280,8 @@ bool check_restrictions(bip_context* c, int* vars)
 
 bool check_future_fact(bip_context* c, int* fixed, int* workplace)
 {
+    /* Flush fixed to workplace */
+    //int i = reset_workplace(c, fixed, workplace);
     // FIXME: Implement.
     return true;
 }
