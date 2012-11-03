@@ -141,7 +141,6 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
                               int* workplace, int* candidate, int level)
 {
     if(level == c->num_vars) {
-        DEBUG("Out of bounds detected.\n");
         return;
     }
 
