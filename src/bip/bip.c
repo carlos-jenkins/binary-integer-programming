@@ -144,9 +144,9 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
         return;
     }
 
-    /* Calculate best fit */
+    /* Calculate best fit and test if performance is improved */
     int bf = best_fit(c, fixed, workplace);
-    if(abs(bf) <= abs(*alpha)) {
+    if((c->maximize && (bf <= *alpha)) || (!c->maximize && (bf >= *alpha))) {
         // FIXME: Close node with status "doesn't improve performance"
         DEBUG("Closing node at level %i because doesn't improve performance.\n", level);
         return;
@@ -165,7 +165,7 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
         (*alpha) = bf;
 
         // FIXME: Close node with status "new candidate solution"
-        DEBUG("Closing node at level %i with a new candidate solution.\n", level);
+        DEBUG("Closing node at level %i with a new candidate solution: %i.\n", level, bf);
         return;
     }
 
