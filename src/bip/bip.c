@@ -118,6 +118,11 @@ bool implicit_enumeration(bip_context* c)
     impl_aux(c, fixed, &alpha, workplace, candidate, 0);
 
     /* Check if problem was solved */
+    DEBUG("Problem resolution ended with the coefficients:\n");
+    for(int i = 0; i < c->num_vars; i++) {
+        DEBUG("%i ", candidate[i]);
+    }
+    DEBUG("\n");
     /* FIXMEFIXME */
 
     /* Stop counting time */
@@ -130,16 +135,23 @@ bool implicit_enumeration(bip_context* c)
 void impl_aux(bip_context* c, int* fixed, int* alpha,
                               int* workplace, int* candidate, int level)
 {
+    if(level == c->num_vars) {
+        DEBUG("Out of bounds detected.\n");
+        return;
+    }
+
     /* Calculate best fit */
     int bf = best_fit(c, fixed, workplace);
     if(abs(bf) <= abs(*alpha)) {
         // FIXME: Close node with status "doesn't improve performance"
+        DEBUG("Closing node at level %i because doesn't improve performance.\n", level);
         return;
     }
 
     /* Check factibility */
     bool fact = check_restrictions(c, workplace);
     if(fact) {
+
         /* Set the solution as new candidate */
         for(int i = 0; i < c->num_vars; i++) {
             candidate[i] = workplace[i];
@@ -149,6 +161,7 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
         (*alpha) = bf;
 
         // FIXME: Close node with status "new candidate solution"
+        DEBUG("Closing node at level %i with a new candidate solution.\n", level);
         return;
     }
 
@@ -156,23 +169,30 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
     bool future_fact = check_future_fact(c, fixed, workplace);
     if(!future_fact) {
         // FIXME: Close node with status "no factible and no new future factibility"
+        DEBUG("Closing node at level %i because no factible solution is possible.\n", level);
         return;
     }
 
     // FIXME: Mark node with status "not factible but with future factibility"
-    // FIXME: Expand node....
+    DEBUG("Expanding node at level %i because factible solution in the future is still possible.\n", level);
+
     fixed[level] = 0;
-    // FIXME: Expand to the left
-    // FIXME: Flush
+    impl_aux(c, fixed, alpha, workplace, candidate, level + 1);
+    for(int i = level + 1; i < c->num_vars; i++) {
+        fixed[i] = -1;
+    }
+
     fixed[level] = 1;
-    // FIXME: Expand to the right
-    // FIXME: Flush
+    impl_aux(c, fixed, alpha, workplace, candidate, level + 1);
+    for(int i = level + 1; i < c->num_vars; i++) {
+        fixed[i] = -1;
+    }
 
     return;
 }
 
-int reset_workplace(bip_context* c, int* fixed, int* workplace) {
-
+int reset_workplace(bip_context* c, int* fixed, int* workplace)
+{
     /* Copy fixed variables to the workplace */
     int i = 0;
     for(; i < c->num_vars; i++) {
@@ -224,17 +244,30 @@ int best_fit(bip_context* c, int* fixed, int* workplace)
 
 bool check_restrictions(bip_context* c, int* vars)
 {
-    // FIXME: Implement.
     if(c->restrictions == NULL) {
         return true;
     }
 
     bool fact = true;
+
     for(int i = 0; i < c->num_vars; i++) {
-        int n = 0;
-        int j = 0;
-        for(; j < c->num_rest; j++) {
-            n = n + (c->restrictions->data[i][j] * vars[i]);
+        for(int j = 0; j < c->num_rest; j++) {
+
+            int type = c->restrictions->data[i][c->num_vars];
+            int equl = c->restrictions->data[i][c->num_vars + 1];
+
+            int top = INT_MAX;
+            if((type == GE) || (type == EQ)) {
+            }
+
+            int bottom = INT_MIN;
+            if((type == LE) || (type == EQ)) {
+            }
+
+            fact = fact && (bottom <= equl) && (equl <= top);
+            if(!fact) {
+                break;
+            }
         }
     }
 
