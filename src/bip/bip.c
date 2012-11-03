@@ -280,9 +280,63 @@ bool check_restrictions(bip_context* c, int* vars)
 
 bool check_future_fact(bip_context* c, int* fixed, int* workplace)
 {
-    /* Flush fixed to workplace */
-    //int i = reset_workplace(c, fixed, workplace);
-    // FIXME: Implement.
+    if(c->restrictions == NULL) {
+        return true;
+    }
+
+    bool fact = true;
+    for(int i = 0; fact && (i < c->num_rest); i++) {
+
+        /* Flush fixed to workplace */
+        int j = reset_workplace(c, fixed, workplace);
+
+        int type = c->restrictions->data[i][c->num_vars];
+        int equl = c->restrictions->data[i][c->num_vars + 1];
+
+        /* Calculate margins */
+        int top = INT_MAX;
+        if((type == GE) || (type == EQ)) {
+
+            /* Set free variables */
+            for(int k = j; k < c->num_vars; k++) {
+                int n = c->function[k];
+                if(n > 0) {
+                    workplace[i] = 1;
+                } else if(n < 0) {
+                    workplace[i] = 0;
+                } else {
+                    workplace[i] = 0;
+                }
+            }
+
+            /* Calculate scalar product */
+            top = dot_product(c->restrictions->data[i],
+                              workplace, c->num_vars);
+        }
+
+        int bottom = INT_MIN;
+        if((type == LE) || (type == EQ)) {
+
+            /* Set free variables */
+            for(int k = j; k < c->num_vars; k++) {
+                int n = c->function[k];
+                if(n > 0) {
+                    workplace[i] = 0;
+                } else if(n < 0) {
+                    workplace[i] = 1;
+                } else {
+                    workplace[i] = 0;
+                }
+            }
+
+            /* Calculate scalar product */
+            bottom = dot_product(c->restrictions->data[i],
+                                 workplace, c->num_vars);
+        }
+
+        fact = fact && (bottom <= equl) && (equl <= top);
+    }
+
     return true;
 }
 
