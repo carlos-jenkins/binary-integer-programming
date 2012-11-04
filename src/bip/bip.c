@@ -120,7 +120,8 @@ bool implicit_enumeration(bip_context* c)
     }
 
     /* Solve problem */
-    impl_aux(c, fixed, &alpha, workplace, candidate, 0);
+    int node = 1;
+    impl_aux(c, fixed, &alpha, workplace, candidate, 0, &node);
 
     /* Check if problem was solved */
     DEBUG("Problem resolution ended with the coefficients:\n");
@@ -137,18 +138,20 @@ bool implicit_enumeration(bip_context* c)
     return true;
 }
 
-void impl_aux(bip_context* c, int* fixed, int* alpha,
-                              int* workplace, int* candidate, int level)
+void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
+              int* candidate, int level, int* node)
 {
     if(level == c->num_vars) {
         return;
     }
+    int c_node = (*node);
+    (*node) = c_node + 1;
 
     /* Calculate best fit and test if performance is improved */
     int bf = best_fit(c, fixed, workplace);
     if((c->maximize && (bf <= *alpha)) || (!c->maximize && (bf >= *alpha))) {
         // FIXME: Close node with status "doesn't improve performance"
-        DEBUG("Closing node at level %i because doesn't improve performance.\n", level);
+        DEBUG("Closing node %i because doesn't improve performance.\n", c_node);
         return;
     }
 
@@ -165,7 +168,7 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
         (*alpha) = bf;
 
         // FIXME: Close node with status "new candidate solution"
-        DEBUG("Closing node at level %i with a new candidate solution: %i.\n", level, bf);
+        DEBUG("Closing node %i with a new candidate solution: %i.\n", c_node, bf);
         return;
     }
 
@@ -173,21 +176,21 @@ void impl_aux(bip_context* c, int* fixed, int* alpha,
     bool future_fact = check_future_fact(c, fixed, workplace);
     if(!future_fact) {
         // FIXME: Close node with status "no factible and no new future factibility"
-        DEBUG("Closing node at level %i because no factible solution is possible.\n", level);
+        DEBUG("Closing node %i because no factible solution is possible.\n", c_node);
         return;
     }
 
     // FIXME: Mark node with status "not factible but with future factibility"
-    DEBUG("Expanding node at level %i because factible solution in the future is still possible.\n", level);
+    DEBUG("Expanding node %i because factible solution in the future is still possible.\n", c_node);
 
     fixed[level] = 0;
-    impl_aux(c, fixed, alpha, workplace, candidate, level + 1);
+    impl_aux(c, fixed, alpha, workplace, candidate, level + 1, node);
     for(int i = level + 1; i < c->num_vars; i++) {
         fixed[i] = -1;
     }
 
     fixed[level] = 1;
-    impl_aux(c, fixed, alpha, workplace, candidate, level + 1);
+    impl_aux(c, fixed, alpha, workplace, candidate, level + 1, node);
     for(int i = level + 1; i < c->num_vars; i++) {
         fixed[i] = -1;
     }
@@ -305,11 +308,11 @@ bool check_future_fact(bip_context* c, int* fixed, int* workplace)
             for(int k = j; k < c->num_vars; k++) {
                 int n = c->function[k];
                 if(n > 0) {
-                    workplace[i] = 1;
+                    workplace[k] = 1;
                 } else if(n < 0) {
-                    workplace[i] = 0;
+                    workplace[k] = 0;
                 } else {
-                    workplace[i] = 0;
+                    workplace[k] = 0;
                 }
             }
 
@@ -325,11 +328,11 @@ bool check_future_fact(bip_context* c, int* fixed, int* workplace)
             for(int k = j; k < c->num_vars; k++) {
                 int n = c->function[k];
                 if(n > 0) {
-                    workplace[i] = 0;
+                    workplace[k] = 0;
                 } else if(n < 0) {
-                    workplace[i] = 1;
+                    workplace[k] = 1;
                 } else {
-                    workplace[i] = 0;
+                    workplace[k] = 0;
                 }
             }
 
@@ -337,10 +340,10 @@ bool check_future_fact(bip_context* c, int* fixed, int* workplace)
             bottom = dot_product(c->restrictions->data[i],
                                  workplace, c->num_vars);
         }
-
+        //DEBUG("Equality: %i, Bottom: %i, Top: %i\n", equl, bottom, top);
         fact = fact && (bottom <= equl) && (equl <= top);
     }
 
-    return true;
+    return fact;
 }
 

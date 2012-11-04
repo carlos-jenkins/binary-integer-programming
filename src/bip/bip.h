@@ -59,7 +59,7 @@ void bip_context_free(bip_context* c);
 bool implicit_enumeration(bip_context* c);
 
 void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
-                              int* candidate, int level);
+                              int* candidate, int level, int* node);
 
 int reset_workplace(bip_context* c, int* fixed, int* workplace);
 int dot_product(int* vector1, int* vector2, int size);
