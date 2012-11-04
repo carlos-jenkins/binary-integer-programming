@@ -151,7 +151,7 @@ void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
     int bf = best_fit(c, fixed, workplace);
     if((c->maximize && (bf <= *alpha)) || (!c->maximize && (bf >= *alpha))) {
         // FIXME: Close node with status "doesn't improve performance"
-        DEBUG("Closing node %i because doesn't improve performance.\n", c_node);
+        DEBUG("Node %i: Close node. Doesn't improve performance.\n", c_node);
         return;
     }
 
@@ -168,7 +168,7 @@ void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
         (*alpha) = bf;
 
         // FIXME: Close node with status "new candidate solution"
-        DEBUG("Closing node %i with a new candidate solution: %i.\n", c_node, bf);
+        DEBUG("Node %i: Close node. New candidate solution: %i.\n", c_node, bf);
         return;
     }
 
@@ -176,13 +176,12 @@ void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
     bool future_fact = check_future_fact(c, fixed, workplace);
     if(!future_fact) {
         // FIXME: Close node with status "no factible and no new future factibility"
-        DEBUG("Closing node %i because no factible solution is possible.\n", c_node);
+        DEBUG("Node %i: Close node. Not factible.\n", c_node);
         return;
     }
 
     // FIXME: Mark node with status "not factible but with future factibility"
-    DEBUG("Expanding node %i because factible solution in the future is still possible.\n", c_node);
-
+    DEBUG("Node %i: Expand node. Possible future factibility.\n", c_node);
     fixed[level] = 0;
     impl_aux(c, fixed, alpha, workplace, candidate, level + 1, node);
     for(int i = level + 1; i < c->num_vars; i++) {
