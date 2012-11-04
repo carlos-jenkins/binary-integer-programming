@@ -306,7 +306,7 @@ bool check_future_fact(bip_context* c, int* fixed, int* workplace)
 
             /* Set free variables */
             for(int k = j; k < c->num_vars; k++) {
-                int n = c->function[k];
+                int n = c->restrictions->data[i][k];
                 if(n > 0) {
                     workplace[k] = 1;
                 } else if(n < 0) {
@@ -326,7 +326,7 @@ bool check_future_fact(bip_context* c, int* fixed, int* workplace)
 
             /* Set free variables */
             for(int k = j; k < c->num_vars; k++) {
-                int n = c->function[k];
+                int n = c->restrictions->data[i][k];
                 if(n > 0) {
                     workplace[k] = 0;
                 } else if(n < 0) {
@@ -340,7 +340,7 @@ bool check_future_fact(bip_context* c, int* fixed, int* workplace)
             bottom = dot_product(c->restrictions->data[i],
                                  workplace, c->num_vars);
         }
-        //DEBUG("Equality: %i, Bottom: %i, Top: %i\n", equl, bottom, top);
+
         fact = fact && (bottom <= equl) && (equl <= top);
     }
 
