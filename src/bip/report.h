@@ -22,6 +22,12 @@
 #include "bip.h"
 #include "graphviz.h"
 
+enum CloseReason {
+    doesnt_improve,
+    new_candidate,
+    not_factible
+};
+
 /**
  * Write a report about the execution of the algorithm.
  *
@@ -30,5 +36,15 @@
  * @return if report creation was successful.
  */
 bool implicit_report(bip_context* c);
+
+void imp_node_open(bip_context* c, int num);
+void imp_node_close(bip_context* c, enum CloseReason reason);
+
+void imp_node_log_bf(bip_context* c, int bf, int alpha);
+// Also:
+// verificación de restricciones, cálculo de factibilidad futura
+
+void draw_branch(int* vars, int num);
+
 
 #endif
