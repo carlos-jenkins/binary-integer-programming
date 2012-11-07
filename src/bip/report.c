@@ -85,3 +85,19 @@ bool implicit_report(bip_context* c)
 
     return true;
 }
+
+void imp_node_open(bip_context* c, int num)
+{
+}
+
+void imp_node_close(bip_context* c, enum CloseReason reason)
+{
+}
+
+void imp_node_log_bf(bip_context* c, int bf, int alpha)
+{
+}
+
+void draw_branch(int* vars, int num)
+{
+}

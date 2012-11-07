@@ -25,7 +25,8 @@
 enum CloseReason {
     doesnt_improve,
     new_candidate,
-    not_factible
+    not_factible,
+    expand
 };
 
 /**
