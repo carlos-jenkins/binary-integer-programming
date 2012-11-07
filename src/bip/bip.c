@@ -112,17 +112,25 @@ bool implicit_enumeration(bip_context* c)
         free(workplace);
         return false;
     }
+    int* parents = (int*) malloc(v * sizeof(int));
+    if(parents == NULL) {
+        free(fixed);
+        free(workplace);
+        free(candidate);
+        return false;
+    }
 
     /* Initialize vectors */
     for(int i = 0; i < v; i++) {
         fixed[i]     = -1;
         workplace[i] = -1;
         candidate[i] = -1;
+        parents[i]   = -1;
     }
 
     /* Solve problem */
     int node = 1;
-    impl_aux(c, fixed, &alpha, workplace, candidate, 0, &node);
+    impl_aux(c, fixed, &alpha, workplace, candidate, parents, 0, &node);
 
     /* Check if problem was solved */
     DEBUG("Problem resolution ended with the coefficients:\n");
@@ -140,14 +148,17 @@ bool implicit_enumeration(bip_context* c)
 }
 
 void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
-              int* candidate, int level, int* node)
+              int* candidate, int* parents, int level, int* node)
 {
     if(level == c->num_vars) {
         return;
     }
+
+    /* Register node num */
     int c_node = (*node);
     (*node) = c_node + 1;
-    imp_node_open(c, c_node);
+    parents[level] = c_node;
+    imp_node_open(c, fixed, parents, c_node);
 
     /* Calculate best fit and test if performance is improved */
     int bf = best_fit(c, fixed, workplace);
@@ -190,15 +201,17 @@ void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
     imp_node_close(c, expand);
 
     fixed[level] = 0;
-    impl_aux(c, fixed, alpha, workplace, candidate, level + 1, node);
+    impl_aux(c, fixed, alpha, workplace, candidate, parents, level + 1, node);
     for(int i = level + 1; i < c->num_vars; i++) {
         fixed[i] = -1;
+        parents[i] = -1;
     }
 
     fixed[level] = 1;
-    impl_aux(c, fixed, alpha, workplace, candidate, level + 1, node);
+    impl_aux(c, fixed, alpha, workplace, candidate, parents, level + 1, node);
     for(int i = level + 1; i < c->num_vars; i++) {
         fixed[i] = -1;
+        parents[i] = -1;
     }
 
     return;

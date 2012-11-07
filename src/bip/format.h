@@ -23,19 +23,34 @@
 #include <glib.h>
 
 /* Lesser or equal and greater or equal unicode symbols */
-#define LES "<span size=\"xx-large\" foreground=\"#FF0000\" font_family=\"DejaVu Sans Mono\">\u2264</span>"
-#define GES "<span size=\"xx-large\" foreground=\"#66FF00\" font_family=\"DejaVu Sans Mono\">\u2265</span>"
-#define EQS "<span size=\"xx-large\" foreground=\"#000000\" font_family=\"DejaVu Sans Mono\">=</span>"
+#define LES "<span \
+size=\"xx-large\" \
+foreground=\"#FF0000\" \
+font_family=\"DejaVu Sans Mono\">\u2264</span>"
+#define GES "<span \
+size=\"xx-large\" \
+foreground=\"#66FF00\" \
+font_family=\"DejaVu Sans Mono\">\u2265</span>"
+#define EQS "<span \
+size=\"xx-large\" \
+foreground=\"#000000\" \
+font_family=\"DejaVu Sans Mono\">=</span>"
 
-#define PLUS  "<span size=\"x-large\" foreground=\"#66FF00\" font_family=\"DejaVu Sans Mono\">+</span>"
-#define MINUS "<span size=\"x-large\" foreground=\"#FF0000\" font_family=\"DejaVu Sans Mono\">-</span>"
+#define PLUS  "<span \
+size=\"x-large\" \
+foreground=\"#66FF00\" \
+font_family=\"DejaVu Sans Mono\">+</span>"
+#define MINUS "<span \
+size=\"x-large\" \
+foreground=\"#FF0000\" \
+font_family=\"DejaVu Sans Mono\">-</span>"
 
 #define VARS 26
 
 /* Formatting string. Requires :
  *     - Coefficient (int, ex. 1),
  */
-extern const char* num_format;
+extern const char* NUM_FORMAT;
 
 /* Formatting string. Requires :
  *     - Coefficient (int, ex. 1),
@@ -43,15 +58,15 @@ extern const char* num_format;
  *     - variable (char*, ex "a"),
  *     - Subindex (int, ex. 2).
  */
-extern const char* var_format;
+extern const char* VAR_FORMAT;
 
 /* Variables names */
-extern const char* var_names[];
+extern const char* VAR_NAMES[];
 
 /* Mapping colors
  * http://www.christianfaur.com/color/index.html
  */
-extern const char* var_colors[];
+extern const char* VAR_COLORS[];
 
 /**
  * Format a variable.

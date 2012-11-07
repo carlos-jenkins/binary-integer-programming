@@ -18,10 +18,10 @@
 
 #include "format.h"
 
-const char* num_format =
+const char* NUM_FORMAT =
 "<span size=\"x-large\" font_family=\"DejaVu Sans Mono\">%i</span>";
 
-const char* var_format =
+const char* VAR_FORMAT =
 "<span size=\"x-large\" font_family=\"DejaVu Sans Mono\">%i"
     "<span foreground=\"%s\">"
         "<i><b>%s</b></i>"
@@ -29,13 +29,13 @@ const char* var_format =
     "</span>"
 "</span>";
 
-const char* var_names[] = {
+const char* VAR_NAMES[] = {
     "a", "b", "c", "d", "e", "f", "g", "h", "i",
     "j", "k", "l", "m", "n", "o", "p", "q", "r",
     "s", "t", "u", "v", "w", "x", "y", "z"
 };
 
-const char* var_colors[] = {
+const char* VAR_COLORS[] = {
     "#0000B4", /* A */
     "#AF0D66", /* B */
     "#92F846", /* C */
@@ -69,9 +69,9 @@ char* var_name(int c, int i, bool s) /* Coeff, Index, Sign */
     if(i < 0) { i *= -1; }
     if(!s && (c < 0)) { c *= -1; }
 
-    char* r = g_strdup_printf(var_format, c,
-                              var_colors[i % VARS],
-                              var_names[i % VARS],
+    char* r = g_strdup_printf(VAR_FORMAT, c,
+                              VAR_COLORS[i % VARS],
+                              VAR_NAMES[i % VARS],
                               (i / VARS) + 1);
     return r;
 }
@@ -80,6 +80,6 @@ char* num_name(int c, bool s) /* Coeff, Sign */
 {
     if(!s && (c < 0)) { c *= -1; }
 
-    char* r = g_strdup_printf(num_format, c);
+    char* r = g_strdup_printf(NUM_FORMAT, c);
     return r;
 }

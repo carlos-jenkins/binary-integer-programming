@@ -17,6 +17,7 @@
  */
 
 #include "report.h"
+#include "format.h"
 
 bool implicit_report(bip_context* c)
 {
@@ -86,8 +87,9 @@ bool implicit_report(bip_context* c)
     return true;
 }
 
-void imp_node_open(bip_context* c, int num)
+void imp_node_open(bip_context* c, int* vars, int* parents, int num)
 {
+    draw_branch(vars, parents, c->num_vars, num);
 }
 
 void imp_node_close(bip_context* c, enum CloseReason reason)
@@ -98,6 +100,91 @@ void imp_node_log_bf(bip_context* c, int bf, int alpha)
 {
 }
 
-void draw_branch(int* vars, int num)
+const char* GRAPH_HEADER = "digraph branch {\n"
+"\n"
+"    node [shape = circle, fixedsize = true];\n"
+"    graph [ordering = out, splines = false];\n"
+"    edge [labelfloat = true];\n"
+"\n";
+const char* LINK_TPL = "    %i -> %i "
+"[label = <  <font point-size=\"20\" color=\"%s\">%a</font>"
+"<font point-size=\"9\">%i</font> = %i>];\n";
+
+bool draw_branch(int* vars, int* parents, int bounds, int num)
 {
+    /* Create branch file */
+    char* path = g_strdup_printf("reports/branch%i.gv", num);
+    FILE* branch = fopen(path, "w");
+    g_free(path);
+    if(branch == NULL) {
+        return false;
+    }
+
+    /* Preamble */
+    fprintf(branch, "%s", GRAPH_HEADER);
+
+    /* Count levels */
+    int levels = 0;
+    for(int i = 0; i < bounds; i++) {
+        if(vars[i] == -1) {
+            break;
+        }
+        levels++;
+    }
+
+    /* Create a dummy node for each level */
+    if(levels > 1) {
+        for(int i = 0; i <= levels; i++) {
+            char* dummy = g_strdup_printf(
+                    "    d%i [label = \"\", shape = none];\n", i + 1
+                );
+            fprintf(branch, "%s", dummy);
+            g_free(dummy);
+        }
+    }
+
+    /* Create styled node for current node */
+    char* current = g_strdup_printf(
+            "    %i [style = bold, color = red];\n\n", num
+        );
+    fprintf(branch, "%s", current);
+    g_free(current);
+
+    /* Create links */
+    for(int i = 0; i < levels - 1; i++) {
+
+        int left = vars[i] == 0;
+
+        if(!left) {
+            fprintf(branch,
+                    "    %i -> d%i [color = white];\n", parents[i], i + 1
+                );
+        }
+
+        fprintf(branch, LINK_TPL,
+                parents[i], parents[i + 1],
+                VAR_COLORS[i % VARS],
+                VAR_NAMES[i % VARS],
+                ((i / VARS) + 1),
+                vars[i]
+            );
+
+        if(left) {
+            fprintf(branch,
+                    "    %i -> d%i [color = white];\n", parents[i], i + 1
+                );
+        }
+    }
+
+    /* Close file */
+    fprintf(branch, "}\n");
+    fclose(branch);
+
+    /* Render graph */
+    char* name = g_strdup_printf("branch%i", num);
+    gv2pdf(name, "reports");
+    g_free(name);
+
+    return true;
 }
+
