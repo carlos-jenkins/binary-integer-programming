@@ -1,16 +1,12 @@
-digraph bstree {
+digraph tree {
 
-    node [shape = circle];
-    graph [ordering = "out"];
+    node [shape = circle, fixedsize = true];
+    graph [ordering = "out", splines = false];
 
-    dummy1 [label = "", shape = none];
-
-    1 -> 2 [label = <a1 = 0>, fontsize = 10.0];
-    1 -> 3 [label = <a1 = 1>, fontsize = 10.0];
-    3 -> 4 [label = <b1 = 0>, fontsize = 10.0];
-    3 -> 7 [label = <b1 = 1>, fontsize = 10.0];
-    4 -> 5 [label = <c1 = 0>, fontsize = 10.0];
-    4 -> 6 [label = <c1 = 1>, fontsize = 10.0];
-    5 -> 10 [label = <d1 = 0>, fontsize = 10.0];
-    5 -> dummy1 [color = white];
+    1 -> 2;
+    1 -> 3;
+    3 -> 4;
+    3 -> 7;
+    4 -> 5;
+    4 -> 6;
 }
