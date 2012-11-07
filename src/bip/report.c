@@ -107,7 +107,7 @@ const char* GRAPH_HEADER = "digraph branch {\n"
 "    edge [labelfloat = true];\n"
 "\n";
 const char* LINK_TPL = "    %i -> %i "
-"[label = <  <font point-size=\"20\" color=\"%s\">%a</font>"
+"[label = <  <font point-size=\"20\" color=\"%s\">%s</font>"
 "<font point-size=\"9\">%i</font> = %i>];\n";
 
 bool draw_branch(int* vars, int* parents, int bounds, int num)
@@ -133,8 +133,8 @@ bool draw_branch(int* vars, int* parents, int bounds, int num)
     }
 
     /* Create a dummy node for each level */
-    if(levels > 1) {
-        for(int i = 0; i <= levels; i++) {
+    if(levels > 0) {
+        for(int i = 0; i < levels; i++) {
             char* dummy = g_strdup_printf(
                     "    d%i [label = \"\", shape = none];\n", i + 1
                 );
@@ -151,7 +151,7 @@ bool draw_branch(int* vars, int* parents, int bounds, int num)
     g_free(current);
 
     /* Create links */
-    for(int i = 0; i < levels - 1; i++) {
+    for(int i = 0; i < levels; i++) {
 
         int left = vars[i] == 0;
 
@@ -162,7 +162,8 @@ bool draw_branch(int* vars, int* parents, int bounds, int num)
         }
 
         fprintf(branch, LINK_TPL,
-                parents[i], parents[i + 1],
+                parents[i],
+                parents[i + 1],
                 VAR_COLORS[i % VARS],
                 VAR_NAMES[i % VARS],
                 ((i / VARS) + 1),

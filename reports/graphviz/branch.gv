@@ -1,7 +1,7 @@
 digraph branch {
 
     node [shape = circle, fixedsize = true];
-    graph [ordering = "out", splines = false];
+    graph [ordering = out, splines = false];
     edge [labelfloat = true];
 
     d1 [label = "", shape = none];
