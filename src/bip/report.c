@@ -67,7 +67,10 @@ bool implicit_report(bip_context* c)
     fprintf(report, "\n");
 
     /* Write execution */
-    /* FIXMEFIXMEFIXME */
+    success = copy_streams(c->report_buffer, report);
+    if(!success) {
+        return false;
+    }
 
     /* End document */
     fprintf(report, "\\end{document}\n");
@@ -89,11 +92,33 @@ bool implicit_report(bip_context* c)
 
 void imp_node_open(bip_context* c, int* vars, int* parents, int num)
 {
-    draw_branch(vars, parents, c->num_vars, num);
+    FILE* report = c->report_buffer;
+
+    fprintf(report, "\\subsection{%s %i}\n", "Subproblem", num);
+
+    bool branch = draw_branch(vars, parents, c->num_vars, num);
+
+    fprintf(report, "\\begin{minipage}[t]{0.25\\textwidth}\n");
+    if(branch) {
+        fprintf(report, "    \\includegraphics[width=\\textwidth]"
+                        "{reports/branch%i.pdf}\n", num);
+    } else {
+        fprintf(report, "    ERROR: Unable to generate branch %i.\n", num);
+    }
+    fprintf(report, "\\vfill\n");
+    fprintf(report, "\\end{minipage}\n");
+    fprintf(report, "\\begin{minipage}[t]{0.74\\textwidth}\n");
+    fprintf(report, "\\lipsum[3]\n");
+    fprintf(report, "\\vfill\n");
+    fprintf(report, "\\end{minipage}\n");
+
 }
 
 void imp_node_close(bip_context* c, enum CloseReason reason)
 {
+    FILE* report = c->report_buffer;
+    fprintf(report, "\\newpage\n");
+    fprintf(report, "\n");
 }
 
 void imp_node_log_bf(bip_context* c, int bf, int alpha)
@@ -133,14 +158,12 @@ bool draw_branch(int* vars, int* parents, int bounds, int num)
     }
 
     /* Create a dummy node for each level */
-    if(levels > 0) {
-        for(int i = 0; i < levels; i++) {
-            char* dummy = g_strdup_printf(
-                    "    d%i [label = \"\", shape = none];\n", i + 1
-                );
-            fprintf(branch, "%s", dummy);
-            g_free(dummy);
-        }
+    for(int i = 0; i < levels; i++) {
+        char* dummy = g_strdup_printf(
+                "    d%i [label = \"\", shape = none];\n", i + 1
+            );
+        fprintf(branch, "%s", dummy);
+        g_free(dummy);
     }
 
     /* Create styled node for current node */
