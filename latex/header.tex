@@ -1,29 +1,47 @@
 \documentclass{article}
 
-\usepackage[top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry} % Page
+\usepackage[top=3cm, bottom=3cm, left=3cm, right=8cm, marginpar=5cm]{geometry}
 \usepackage[utf8]{inputenc}              % Encoding
-\usepackage{lipsum}
-\usepackage{graphicx}                    % Images
 \usepackage{paralist}                    % Lists
-\usepackage{float}                       % In place images
-\usepackage{color}                       % Define colors
-\usepackage[table]{xcolor}               % Colorize tables
+\usepackage{xcolor}                      % Define colors
+\usepackage{graphicx}                    % Images
+\usepackage{caption}                     % Caption for images
 \usepackage{chngpage}                    % Redefine margins
-\usepackage{multicol}                    % Multiple columns
+\usepackage{lipsum}
 
+% General spacing
 \addtolength{\parskip}{\baselineskip}    % Paragraph spacing
 \linespread{1.15}                        % Lines spacing
 \setlength{\plitemsep}{0.5\baselineskip} % List items spacing
 
 % Colors
-\definecolor{deepred}{RGB}{150,0,0}
-\definecolor{deepgreen}{RGB}{0,150,0}
 \definecolor{deepblue}{RGB}{0,0,70}
-\definecolor{gray97}{gray}{.97}
-\definecolor{gray90}{gray}{.90}
-\definecolor{gray85}{gray}{.85}
-\definecolor{gray75}{gray}{.75}
-\definecolor{gray45}{gray}{.45}
+\definecolor{a}{HTML}{0000B4}
+\definecolor{b}{HTML}{AF0D66}
+\definecolor{c}{HTML}{92F846}
+\definecolor{d}{HTML}{FFC82F}
+\definecolor{e}{HTML}{FF7600}
+\definecolor{f}{HTML}{B9B9B9}
+\definecolor{g}{HTML}{EBEBDE}
+\definecolor{h}{HTML}{646464}
+\definecolor{i}{HTML}{FFFF00}
+\definecolor{j}{HTML}{371370}
+\definecolor{k}{HTML}{FFFF96}
+\definecolor{l}{HTML}{CA3E5E}
+\definecolor{m}{HTML}{CD913F}
+\definecolor{n}{HTML}{0C4B64}
+\definecolor{o}{HTML}{FF0000}
+\definecolor{p}{HTML}{AF9B32}
+\definecolor{q}{HTML}{000000}
+\definecolor{r}{HTML}{254619}
+\definecolor{s}{HTML}{792187}
+\definecolor{t}{HTML}{538CD0}
+\definecolor{u}{HTML}{009A25}
+\definecolor{v}{HTML}{B2DCCD}
+\definecolor{w}{HTML}{FF98D5}
+\definecolor{x}{HTML}{00004A}
+\definecolor{y}{HTML}{AFC84A}
+\definecolor{z}{HTML}{3F190C}
 
 % Remove numbering on sections
 \setcounter{secnumdepth}{0}
@@ -46,6 +64,13 @@
 \usepackage[urlcolor=blue,colorlinks=true,hyperfootnotes=false]{hyperref}
 \hypersetup{linkcolor=deepblue,}
 
+% Configure captions
+\captionsetup{
+  justification=centering,
+  labelfont={color=deepblue,bf},
+  font=small}
+
 \begin{document}
 
+\begin{adjustwidth}{}{-5cm}
 \HRule

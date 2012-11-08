@@ -34,7 +34,7 @@ int gv2pdf(char* name, char* dir)
     if(!file_exists(buffer)) {
         return -1;
     }
-    sprintf(buffer, "dot -Tps2 -o%s/%s.eps %s/%s.gv",
+    sprintf(buffer, "dot -Tps2 -o%s/%s.eps %s/%s.gv 2> /dev/null",
                     dir, name, dir, name);
     printf("%s\n", buffer);
     int dot_status = system(buffer);
@@ -76,7 +76,7 @@ int gv2png(char* name, char* dir)
     if(!file_exists(buffer)) {
         return -1;
     }
-    sprintf(buffer, "dot -Tpng -o%s/%s.png %s/%s.gv",
+    sprintf(buffer, "dot -Tpng -o%s/%s.png %s/%s.gv 2> /dev/null",
                     dir, name, dir, name);
     printf("%s\n", buffer);
     int dot_status = system(buffer);

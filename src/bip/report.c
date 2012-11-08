@@ -63,7 +63,10 @@ bool implicit_report(bip_context* c)
     fprintf(report, "\n");
 
     /* TOC */
-    fprintf(report, "\\newpage\n\\tableofcontents\n\\newpage\n");
+    fprintf(report, "\\newpage\n");
+    fprintf(report, "\\tableofcontents\n");
+    fprintf(report, "\\end{adjustwidth}\n");
+    fprintf(report, "\\newpage\n");
     fprintf(report, "\n");
 
     /* Write execution */
@@ -98,20 +101,21 @@ void imp_node_open(bip_context* c, int* vars, int* parents, int num)
 
     bool branch = draw_branch(vars, parents, c->num_vars, num);
 
-    fprintf(report, "\\begin{minipage}[t]{0.25\\textwidth}\n");
     if(branch) {
-        fprintf(report, "    \\includegraphics[width=\\textwidth]"
+        fprintf(report, "\\marginpar{%%\n");
+        fprintf(report, "    \\vspace{0.6cm}\n");
+        fprintf(report, "    \\includegraphics[width=\\marginparwidth]"
                         "{reports/branch%i.pdf}\n", num);
+        fprintf(report, "    \\captionof{figure}{Subproblem %i branch.}\n",num);
+        fprintf(report, "}\n");
     } else {
-        fprintf(report, "    ERROR: Unable to generate branch %i.\n", num);
+        fprintf(report,
+            "\\marginpar{ERROR: Unable to generate branch %i}\n", num);
     }
-    fprintf(report, "\\vfill\n");
-    fprintf(report, "\\end{minipage}\n");
-    fprintf(report, "\\begin{minipage}[t]{0.74\\textwidth}\n");
-    fprintf(report, "\\lipsum[3]\n");
-    fprintf(report, "\\vfill\n");
-    fprintf(report, "\\end{minipage}\n");
+    fprintf(report, "\n");
 
+    fprintf(report, "\\lipsum[2]\n");
+    fprintf(report, "\n");
 }
 
 void imp_node_close(bip_context* c, enum CloseReason reason)
