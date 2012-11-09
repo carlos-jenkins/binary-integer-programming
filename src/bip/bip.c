@@ -170,6 +170,7 @@ void impl_aux(bip_context* c, int* fixed, int* alpha, int* workplace,
     }
 
     /* Check factibility */
+    imp_node_log_rc(c); /* LOG */
     bool fact = check_restrictions(c, workplace);
     if(fact) {
 
@@ -280,22 +281,26 @@ bool check_restrictions(bip_context* c, int* vars)
 
     for(int i = 0; fact && (i < c->num_rest); i++) {
 
-        int type = c->restrictions->data[i][c->num_vars];
-        int equl = c->restrictions->data[i][c->num_vars + 1];
+        int* rests = c->restrictions->data[i];
+        int type = rests[c->num_vars];
+        int equl = rests[c->num_vars + 1];
 
-        int real = dot_product(c->restrictions->data[i], vars, c->num_vars);
+        int real = dot_product(rests, vars, c->num_vars);
 
         if(type == GE) {
             fact = fact && (real >= equl);
+            imp_node_log_rc_r(c, rests, vars, fact, i); /* LOG */
             continue;
         }
 
         if(type == LE) {
             fact = fact && (real <= equl);
+            imp_node_log_rc_r(c, rests, vars, fact, i); /* LOG */
             continue;
         }
 
         fact = fact && (real == equl);
+        imp_node_log_rc_r(c, rests, vars, fact, i); /* LOG */
     }
 
     return fact;

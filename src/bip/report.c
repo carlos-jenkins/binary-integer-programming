@@ -256,7 +256,7 @@ void imp_node_log_bf(bip_context* c, int* fixed, int* vars, int bf, int alpha)
                 VAR_NAMES[i % VARS],
                 ((i / VARS) + 1),
                 vars[i]
-        );
+            );
         if(i == c->num_vars - 1) {
             fprintf(report, ".");
         } else {
@@ -345,6 +345,7 @@ void imp_node_log_bf(bip_context* c, int* fixed, int* vars, int bf, int alpha)
                             "Improves performance (minimizing)");
         }
     }
+    fprintf(report, "\n");
 
     if(free_alpha) {
         g_free(alpha_txt);
@@ -436,5 +437,78 @@ bool draw_branch(int* vars, int* parents, int bounds, int num)
     g_free(name);
 
     return true;
+}
+
+void imp_node_log_rc(bip_context* c)
+{
+    FILE* report = c->report_buffer;
+    fprintf(report, "\\noindent\n");
+    fprintf(report, "{\\Large %s:}\n", "Check restrictions");
+    fprintf(report, "\\begin{compactitem}\n");
+}
+
+void imp_node_log_rc_r(bip_context* c, int* rests, int* vars, bool pass, int n)
+{
+    FILE* report = c->report_buffer;
+    fprintf(report, "\\item $");
+
+    /* Prints variables */
+    for(int i = 0; i < c->num_vars; i++) {
+        int coeff = rests[i];
+
+        if(coeff < 0) {
+                fprintf(report, "\\cred{-}");
+        } else if(i > 0) {
+            fprintf(report, "\\cgreen{+}");
+        }
+        fprintf(report, "%i\\times\\textcolor{%s}{%i}",
+                abs(coeff),
+                VAR_NAMES[i % VARS],
+                vars[i]
+            );
+    }
+
+    /* Prints inequality */
+    int type = rests[c->num_vars];
+    if(type == LE) {
+        if(pass) {
+            fprintf(report, " \\le ");
+        } else {
+            fprintf(report, " \\nleq ");
+        }
+    } else if(type == GE) {
+        if(pass) {
+            fprintf(report, " \\ge ");
+        } else {
+            fprintf(report, " \\ngeq ");
+        }
+    } else {
+        if(pass) {
+            fprintf(report, " = ");
+        } else {
+            fprintf(report, " \\neq ");
+        }
+    }
+
+    /* Prints right part */
+    int equl = rests[c->num_vars + 1];
+    if(equl < 0) {
+            fprintf(report, "\\cred{-}");
+    } else {
+        fprintf(report, "\\cgreen{+}");
+    }
+    fprintf(report, "%i", abs(equl));
+
+    /* Prints conclusion */
+    if(pass) {
+        fprintf(report, "\\longleftarrow$ {\\large \\cgreen{%s}}\n", "PASS");
+    } else {
+        fprintf(report, "\\longleftarrow$ {\\large \\cred{%s}}\n", "FAIL");
+    }
+
+    if(!pass || (n == c->num_rest - 1)) {
+        fprintf(report, "\\end{compactitem}\n");
+        fprintf(report, "\n");
+    }
 }
 
