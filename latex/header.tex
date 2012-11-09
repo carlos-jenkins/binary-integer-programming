@@ -9,13 +9,22 @@
 \usepackage{chngpage}                    % Redefine margins
 \usepackage{lipsum}
 
+% Math and symbols
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
 % General spacing
 \addtolength{\parskip}{\baselineskip}    % Paragraph spacing
 \linespread{1.15}                        % Lines spacing
 \setlength{\plitemsep}{0.5\baselineskip} % List items spacing
 
 % Colors
+\definecolor{deepred}{RGB}{150,0,0}
+\definecolor{deepgreen}{RGB}{0,150,0}
 \definecolor{deepblue}{RGB}{0,0,70}
+\definecolor{deeppurple}{RGB}{75,0,130}
+\definecolor{deeporange}{RGB}{255,97,3}
 \definecolor{a}{HTML}{0000B4}
 \definecolor{b}{HTML}{AF0D66}
 \definecolor{c}{HTML}{92F846}
@@ -43,8 +52,14 @@
 \definecolor{y}{HTML}{AFC84A}
 \definecolor{z}{HTML}{3F190C}
 
+\newcommand{\cred}[1]{\textcolor{deepred}{#1}}
+\newcommand{\cgreen}[1]{\textcolor{deepgreen}{#1}}
+
 % Remove numbering on sections
 \setcounter{secnumdepth}{0}
+
+% Max columns of matrix environment
+\setcounter{MaxMatrixCols}{100}
 
 % Helpers
 \newcommand{\superscript}[1]{\ensuremath{^{\textrm{\small#1}}}}

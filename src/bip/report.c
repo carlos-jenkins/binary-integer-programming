@@ -65,11 +65,18 @@ bool implicit_report(bip_context* c)
     /* TOC */
     fprintf(report, "\\newpage\n");
     fprintf(report, "\\tableofcontents\n");
-    fprintf(report, "\\end{adjustwidth}\n");
     fprintf(report, "\\newpage\n");
     fprintf(report, "\n");
 
+    /* Model */
+    fprintf(report, "\\section{%s}\n", "Model");
+    fprintf(report, "\n");
+    imp_model(report, c);
+    fprintf(report, "\\end{adjustwidth}\n");
+    fprintf(report, "\n");
+
     /* Write execution */
+    fprintf(report, "\\section{%s}\n", "Resolution");
     success = copy_streams(c->report_buffer, report);
     if(!success) {
         return false;
@@ -91,6 +98,98 @@ bool implicit_report(bip_context* c)
     c->report_buffer = report;
 
     return true;
+}
+
+void imp_model(FILE* report, bip_context* c)
+{
+    /* Objective function */
+    fprintf(report, "\\noindent\n");
+    if(c->maximize) {
+        fprintf(report, "%s:\n", "Maximize");
+    } else {
+        fprintf(report, "%s:\n", "Minimize");
+    }
+    fprintf(report, "{\\Large\n");
+    fprintf(report, "\\begin{align*}\n");
+    fprintf(report, "    Z = ");
+    for(int i = 0; i < c->num_vars; i++) {
+
+        int coeff = c->function[i];
+
+        if(coeff == 0) {
+            continue;
+        }
+
+        if(coeff < 0) {
+            fprintf(report, " \\cred{-} ");
+        } else if(i > 0) {
+            fprintf(report, " \\cgreen{+} ");
+        }
+        fprintf(report, "%i\\textcolor{%s}{%s_%i}",
+                        abs(coeff),
+                        VAR_NAMES[i % VARS],
+                        VAR_NAMES[i % VARS],
+                        ((i / VARS) + 1)
+                );
+    }
+    fprintf(report, "\n");
+    fprintf(report, "\\end{align*}\n");
+    fprintf(report, "}\n");
+    fprintf(report, "\n");
+
+    /* Restrictions */
+    fprintf(report, "\\noindent\n");
+    fprintf(report, "%s:\n", "Subject to");
+    fprintf(report, "{\\Large\\[\n");
+    fprintf(report, "\\begin{matrix}\n");
+    for(int i = 0; i < c->num_rest; i++) {
+        for(int j = 0; j < c->num_vars; j++) {
+
+            int coeff = c->restrictions->data[i][j];
+
+            if(coeff == 0) {
+                fprintf(report, " & & ");
+                continue;
+            }
+
+            if(coeff < 0) {
+                fprintf(report, " \\cred{-}&");
+            } else if(j > 0) {
+                fprintf(report, " \\cgreen{+}&");
+            } else {
+                fprintf(report, " & ");
+            }
+            fprintf(report, " %i\\textcolor{%s}{%s_%i}&",
+                            abs(coeff),
+                            VAR_NAMES[j % VARS],
+                            VAR_NAMES[j % VARS],
+                            ((j / VARS) + 1)
+                    );
+        }
+        int type = c->restrictions->data[i][c->num_vars];
+        int equl = c->restrictions->data[i][c->num_vars + 1];
+        if(type == LE) {
+            fprintf(report, " \\le& ");
+        } else if(type == GE) {
+            fprintf(report, " \\ge& ");
+        } else {
+            fprintf(report, " =& ");
+        }
+
+        if(equl < 0) {
+                fprintf(report, "\\cred{-}");
+        } else {
+            fprintf(report, "\\cgreen{+}");
+        }
+        fprintf(report, "%i", abs(equl));
+        if(i < c->num_rest - 1) {
+            fprintf(report, " \\\\");
+        }
+        fprintf(report, "\n");
+    }
+    fprintf(report, "\\end{matrix}\n");
+    fprintf(report, "\\]}\n");
+    fprintf(report, "\n");
 }
 
 void imp_node_open(bip_context* c, int* vars, int* parents, int num)

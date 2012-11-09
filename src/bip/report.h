@@ -38,6 +38,8 @@ enum CloseReason {
  */
 bool implicit_report(bip_context* c);
 
+void imp_model(FILE* report, bip_context* c);
+
 void imp_node_open(bip_context* c, int* vars, int* parents, int num);
 void imp_node_close(bip_context* c, enum CloseReason reason);
 
