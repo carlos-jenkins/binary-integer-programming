@@ -244,6 +244,28 @@ void imp_node_close(bip_context* c, enum CloseReason reason)
 void imp_node_log_bf(bip_context* c, int* fixed, int* vars, int bf, int alpha)
 {
     FILE* report = c->report_buffer;
+
+    fprintf(report, "%s", "Considering solution: ");
+    for(int i = 0; i < c->num_vars; i++) {
+        int coeff = c->function[i];
+        if(coeff == 0) {
+            continue;
+        }
+        fprintf(report, "$\\textcolor{%s}{%s_%i} = %i$",
+                VAR_NAMES[i % VARS],
+                VAR_NAMES[i % VARS],
+                ((i / VARS) + 1),
+                vars[i]
+        );
+        if(i == c->num_vars - 1) {
+            fprintf(report, ".");
+        } else {
+            fprintf(report, ", ");
+        }
+    }
+    fprintf(report, "\n");
+    fprintf(report, "\n");
+
     fprintf(report, "\\noindent\n");
     fprintf(report, "{\\Large %s:}\n", "Best fit");
     fprintf(report, "\\begin{align*}\n");
@@ -258,6 +280,7 @@ void imp_node_log_bf(bip_context* c, int* fixed, int* vars, int bf, int alpha)
             break;
         }
         if((coeff == 0) || (fix == 0)) {
+            pos++;
             continue;
         }
         fprintf(report, "%i\\cred{%s_%i}",
@@ -289,14 +312,43 @@ void imp_node_log_bf(bip_context* c, int* fixed, int* vars, int bf, int alpha)
     fprintf(report, "\\end{align*}\n");
     fprintf(report, "\n");
 
+    bool free_alpha = true;
+    char* alpha_txt = g_strdup_printf("%i", alpha);
+
     if(alpha == INT_MAX) {
-        fprintf(report, "Current $\\alpha$: \\textbf{+$\\infty$}\n");
+        g_free(alpha_txt);
+        free_alpha = false;
+        alpha_txt = "+\\infty";
     } else if(alpha == INT_MIN) {
-        fprintf(report, "Current $\\alpha$: \\textbf{-$\\infty$}\n");
-    } else {
-        fprintf(report, "Current $\\alpha$: \\textbf{%i}\n", alpha);
+        g_free(alpha_txt);
+        free_alpha = false;
+        alpha_txt = "-\\infty";
     }
+    fprintf(report, "Current $\\alpha$: \\textbf{$%s$}\n", alpha_txt);
     fprintf(report, "\n");
+
+    if(c->maximize) {
+        if(bf <= alpha) {
+            fprintf(report, "$%i \\le %s \\longrightarrow$ %s.\n", bf, alpha_txt,
+                            "Doesn't improve performance (maximizing)");
+        } else {
+            fprintf(report, "$%i > %s \\longrightarrow$ %s.\n", bf, alpha_txt,
+                            "Improves performance (maximizing)");
+        }
+
+    } else {
+        if(bf >= alpha) {
+            fprintf(report, "$%i \\le %s \\longrightarrow$ %s.\n", bf, alpha_txt,
+                            "Doesn't improve performance (minimizing)");
+        } else {
+            fprintf(report, "$%i < %s \\longrightarrow$ %s.\n", bf, alpha_txt,
+                            "Improves performance (minimizing)");
+        }
+    }
+
+    if(free_alpha) {
+        g_free(alpha_txt);
+    }
 }
 
 const char* GRAPH_HEADER = "digraph branch {\n"
