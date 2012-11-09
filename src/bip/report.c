@@ -73,6 +73,7 @@ bool implicit_report(bip_context* c)
     fprintf(report, "\n");
     imp_model(report, c);
     fprintf(report, "\\end{adjustwidth}\n");
+    fprintf(report, "\\newpage\n");
     fprintf(report, "\n");
 
     /* Write execution */
@@ -220,6 +221,25 @@ void imp_node_open(bip_context* c, int* vars, int* parents, int num)
 void imp_node_close(bip_context* c, enum CloseReason reason)
 {
     FILE* report = c->report_buffer;
+    fprintf(report, "\\begin{center}{\\Huge\n");
+    switch(reason) {
+        case doesnt_improve:
+            fprintf(report, "\\cred{%s:\\\\\n\\vspace{0.3cm}\n%s.}\n",
+                            "Close node", "Doesn't improve performance");
+            break;
+        case new_candidate:
+            fprintf(report, "\\cgreen{%s:\\\\\n\\vspace{0.3cm}\n%s.}\n",
+                            "Close node", "New candidate");
+            break;
+        case not_factible:
+            fprintf(report, "\\cred{%s:\\\\\n\\vspace{0.3cm}\n%s.}\n",
+                            "Close node", "No future factibility");
+            break;
+        default: /* expand */
+            fprintf(report, "\\cgreen{%s:\\\\\n\\vspace{0.3cm}\n%s.}\n",
+                            "Expand node", "Future factibility");
+    }
+    fprintf(report, "}\\end{center}\n");
     fprintf(report, "\\newpage\n");
     fprintf(report, "\n");
 }
