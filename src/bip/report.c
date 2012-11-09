@@ -106,9 +106,9 @@ void imp_model(FILE* report, bip_context* c)
     /* Objective function */
     fprintf(report, "\\noindent\n");
     if(c->maximize) {
-        fprintf(report, "%s:\n", "Maximize");
+        fprintf(report, "{\\Large %s:}\n", "Maximize");
     } else {
-        fprintf(report, "%s:\n", "Minimize");
+        fprintf(report, "{\\Large %s:}\n", "Minimize");
     }
     fprintf(report, "{\\Large\n");
     fprintf(report, "\\begin{align*}\n");
@@ -140,7 +140,7 @@ void imp_model(FILE* report, bip_context* c)
 
     /* Restrictions */
     fprintf(report, "\\noindent\n");
-    fprintf(report, "%s:\n", "Subject to");
+    fprintf(report, "{\\Large %s:}\n", "Subject to");
     fprintf(report, "{\\Large\\[\n");
     fprintf(report, "\\begin{matrix}\n");
     for(int i = 0; i < c->num_rest; i++) {
@@ -213,9 +213,6 @@ void imp_node_open(bip_context* c, int* vars, int* parents, int num)
             "\\marginpar{ERROR: Unable to generate branch %i}\n", num);
     }
     fprintf(report, "\n");
-
-    fprintf(report, "\\lipsum[2]\n");
-    fprintf(report, "\n");
 }
 
 void imp_node_close(bip_context* c, enum CloseReason reason)
@@ -244,8 +241,62 @@ void imp_node_close(bip_context* c, enum CloseReason reason)
     fprintf(report, "\n");
 }
 
-void imp_node_log_bf(bip_context* c, int bf, int alpha)
+void imp_node_log_bf(bip_context* c, int* fixed, int* vars, int bf, int alpha)
 {
+    FILE* report = c->report_buffer;
+    fprintf(report, "\\noindent\n");
+    fprintf(report, "{\\Large %s:}\n", "Best fit");
+    fprintf(report, "\\begin{align*}\n");
+    fprintf(report, "    Z = ");
+
+    int pos = 0;
+    int count = 0;
+    for(int i = 0; i < c->num_vars; i++) {
+        int coeff = c->function[i];
+        int fix = fixed[i];
+        if(fix == -1) {
+            break;
+        }
+        if((coeff == 0) || (fix == 0)) {
+            continue;
+        }
+        fprintf(report, "%i\\cred{%s_%i}",
+                        coeff, VAR_NAMES[i % VARS], ((i / VARS) + 1)
+                );
+        pos++;
+        count++;
+    }
+
+    for(int i = pos; i < c->num_vars; i++) {
+        int coeff = c->function[i];
+        int flt = vars[i];
+        if((coeff == 0) || (flt == 0)) {
+            continue;
+        }
+        fprintf(report, "%i\\cgreen{%s_%i}",
+                        coeff,
+                        VAR_NAMES[i % VARS],
+                        ((i / VARS) + 1)
+                );
+        count++;
+    }
+
+    if(count > 0) {
+        fprintf(report, " =");
+    }
+    fprintf(report, " %i", bf);
+
+    fprintf(report, "\\end{align*}\n");
+    fprintf(report, "\n");
+
+    if(alpha == INT_MAX) {
+        fprintf(report, "Current $\\alpha$: \\textbf{+$\\infty$}\n");
+    } else if(alpha == INT_MIN) {
+        fprintf(report, "Current $\\alpha$: \\textbf{-$\\infty$}\n");
+    } else {
+        fprintf(report, "Current $\\alpha$: \\textbf{%i}\n", alpha);
+    }
+    fprintf(report, "\n");
 }
 
 const char* GRAPH_HEADER = "digraph branch {\n"
