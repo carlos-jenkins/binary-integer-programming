@@ -45,7 +45,8 @@ void imp_node_close(bip_context* c, enum CloseReason reason);
 
 void imp_node_log_bf(bip_context* c, int* fixed, int* vars, int bf, int alpha);
 void imp_node_log_rc(bip_context* c);
-void imp_node_log_rc_r(bip_context* c, int* rests, int* vars, bool pass, int n);
+void imp_node_log_ff(bip_context* c);
+void imp_node_log_calc(bip_context* c, int* rests, int* vars, bool pass, int n);
 
 // Also:
 // verificación de restricciones, cálculo de factibilidad futura

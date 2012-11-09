@@ -447,7 +447,15 @@ void imp_node_log_rc(bip_context* c)
     fprintf(report, "\\begin{compactitem}\n");
 }
 
-void imp_node_log_rc_r(bip_context* c, int* rests, int* vars, bool pass, int n)
+void imp_node_log_ff(bip_context* c)
+{
+    FILE* report = c->report_buffer;
+    fprintf(report, "\\noindent\n");
+    fprintf(report, "{\\Large %s:}\n", "Future factibility");
+    fprintf(report, "\\begin{compactitem}\n");
+}
+
+void imp_node_log_calc(bip_context* c, int* rests, int* vars, bool pass, int n)
 {
     FILE* report = c->report_buffer;
     fprintf(report, "\\item $");
